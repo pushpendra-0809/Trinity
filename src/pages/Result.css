@@ -95,6 +95,163 @@
   margin-top: 32px;
 }
 
+/* Termination Reason Banner Styles */
+.termination-banner {
+  margin-bottom: 32px;
+  padding: 24px;
+  border-radius: 16px;
+  background: rgba(255, 70, 70, 0.08);
+  border: 1px solid rgba(255, 100, 100, 0.35);
+  box-shadow: 0 10px 30px rgba(255, 50, 50, 0.12);
+}
+
+.termination-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 70, 70, 0.2);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  color: #ff9999;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+
+.termination-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffcccc;
+  line-height: 1.4;
+  margin: 0 0 10px 0;
+}
+
+.termination-explanation {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.termination-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.termination-meta-item strong {
+  color: #ff9999;
+}
+
+/* Area Performance Grid Styles */
+.area-performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.area-score-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.area-name {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.area-score-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #a9c7ff;
+}
+
+.area-score-val.not-assessed {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Question Breakdown Grid/List Styles */
+.question-breakdown-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.breakdown-item {
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.breakdown-item.unattempted {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.breakdown-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breakdown-q-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a9c7ff;
+  letter-spacing: 0.08em;
+  min-width: 44px;
+}
+
+.breakdown-q-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.breakdown-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.breakdown-status-badge.attempted {
+  background: rgba(70, 200, 120, 0.12);
+  border: 1px solid rgba(70, 200, 120, 0.35);
+  color: #8be6a8;
+}
+
+.breakdown-status-badge.unattempted {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.45);
+}
+
 @media (max-width: 800px) {
   .result-actions {
     flex-direction: column;
@@ -103,5 +260,20 @@
   .result-actions .primary-action-btn,
   .result-actions .secondary-action-btn {
     width: 100%;
+  }
+
+  .termination-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .area-performance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .breakdown-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }

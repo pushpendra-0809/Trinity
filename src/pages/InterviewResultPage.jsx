@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/StateComponents";
 import { getInterviewResult } from "../services/interviewService";
@@ -19,11 +19,30 @@ function ResultSection({ title, children, emptyText }) {
 
 export default function InterviewResultPage() {
   const { id } = useParams();
+  const location = useLocation();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadResult = async () => {
+  const getTerminationInfo = () => {
+    if (location.state?.isTerminated) {
+      return location.state;
+    }
+    try {
+      const stored = sessionStorage.getItem(`trinity_lockdown_term_${id}`);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const terminationInfo = getTerminationInfo();
+
+  const loadResult = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     setError(null);
 
@@ -35,19 +54,49 @@ export default function InterviewResultPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    loadResult();
+    let isMounted = true;
+    if (!id) return;
+
+    async function fetchResult() {
+      try {
+        const data = await getInterviewResult(id);
+        if (isMounted) {
+          setResult(data);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchResult();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   return (
     <AppShell>
       <div className="result-page">
-        <div className="page-badge">INTERVIEW RESULTS</div>
-        <h1 className="page-title">Your interview feedback</h1>
+        <div className="page-badge">
+          {terminationInfo?.isTerminated ? "TEST TERMINATED" : "INTERVIEW RESULTS"}
+        </div>
+
+        <h1 className="page-title">
+          {terminationInfo?.isTerminated ? "Session Summary" : "Your interview feedback"}
+        </h1>
+
         <p className="page-description result-description">
-          Detailed analysis and recommendations will appear here once the backend generates your results.
+          {terminationInfo?.isTerminated
+            ? "Your assessment session was closed due to a browser lockdown policy event. Your responses up to termination have been evaluated below."
+            : "Detailed analysis and recommendations will appear here once the backend generates your results."}
         </p>
 
         {loading && <LoadingState message="Loading interview results..." />}
@@ -68,12 +117,58 @@ export default function InterviewResultPage() {
 
         {!loading && !error && result && (
           <div className="content-card result-card">
+            {terminationInfo?.isTerminated && (
+              <div className="termination-banner">
+                <div className="termination-badge">🚫 TEST TERMINATED</div>
+                <h2 className="termination-title">
+                  {terminationInfo.terminationMessage}
+                </h2>
+                <p className="termination-explanation">
+                  Browser Lockdown was active. Leaving the test page or exiting fullscreen is not permitted during the assessment.
+                </p>
+                <div className="termination-meta">
+                  <span className="termination-meta-item">
+                    <strong>Termination Reason:</strong>{" "}
+                    {terminationInfo.terminationReason === "FULLSCREEN_EXIT"
+                      ? "Fullscreen Exit"
+                      : "Tab Switch Detected"}
+                  </span>
+                  <span className="termination-meta-item">
+                    <strong>Questions Attempted:</strong>{" "}
+                    {terminationInfo.questionsAttempted ?? 0} / {terminationInfo.totalQuestions ?? 16}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <ResultSection
               title="Overall Score"
               emptyText="Score will appear here once available from the backend."
             >
               {result.score != null && (
-                <div className="result-score">{result.score}</div>
+                <div className="result-score">{result.score}%</div>
+              )}
+            </ResultSection>
+
+            <ResultSection
+              title="Area Performance"
+              emptyText="Area performance will appear here once available."
+            >
+              {(result.areaScores || result.knowledgeMap) && (
+                <div className="area-performance-grid">
+                  {Object.entries(result.areaScores || {}).map(([area, scoreVal]) => (
+                    <div key={area} className="area-score-card">
+                      <span className="area-name">{area}</span>
+                      <span
+                        className={`area-score-val ${
+                          scoreVal === "Not Assessed" ? "not-assessed" : ""
+                        }`}
+                      >
+                        {scoreVal}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </ResultSection>
 
@@ -121,6 +216,44 @@ export default function InterviewResultPage() {
                   ))}
                 </ul>
               )}
+            </ResultSection>
+
+            <ResultSection
+              title="Question Breakdown"
+              emptyText="Question breakdown will appear here once available."
+            >
+              <div className="question-breakdown-grid">
+                {Array.from({ length: 16 }, (_, i) => {
+                  const qNum = i + 1;
+                  const item = Array.isArray(result.questionFeedback)
+                    ? result.questionFeedback[i]
+                    : null;
+                  const isAttempted = Boolean(item);
+
+                  return (
+                    <div
+                      key={qNum}
+                      className={`breakdown-item ${isAttempted ? "attempted" : "unattempted"}`}
+                    >
+                      <div className="breakdown-item-header">
+                        <span className="breakdown-q-num">Q{qNum}</span>
+                        <span className="breakdown-q-text">
+                          {isAttempted
+                            ? item.question ?? `Question ${qNum}`
+                            : `Question ${qNum}`}
+                        </span>
+                      </div>
+                      <span
+                        className={`breakdown-status-badge ${
+                          isAttempted ? "attempted" : "unattempted"
+                        }`}
+                      >
+                        {isAttempted ? "✓ Attempted" : "○ Not Attempted"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </ResultSection>
 
             <ResultSection

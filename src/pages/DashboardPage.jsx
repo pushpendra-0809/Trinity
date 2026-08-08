@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/StateComponents";
@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -26,10 +26,32 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadHistory();
+    let isMounted = true;
+
+    async function fetchHistory() {
+      try {
+        const data = await getInterviewHistory();
+        if (isMounted) {
+          setHistory(Array.isArray(data) ? data : data?.interviews ?? []);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setHistory([]);
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchHistory();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const recentInterviews = history?.slice(0, 3) ?? [];

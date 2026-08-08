@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import * as authService from "../services/authService";
 import { ApiError, isApiConfigured, setAuthToken } from "../services/api";
 
@@ -36,8 +37,42 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    refreshUser();
-  }, [refreshUser]);
+    let isMounted = true;
+
+    async function initUser() {
+      if (!isApiConfigured()) {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (isMounted) {
+          setUser(currentUser);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+            setAuthToken(null);
+            setUser(null);
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+        }
+      }
+    }
+
+    initUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const login = useCallback(async (credentials) => {
     setError(null);

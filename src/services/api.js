@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 export class ApiError extends Error {
   constructor(message, status = 0, data = null) {
@@ -26,13 +27,6 @@ export function isApiConfigured() {
 }
 
 export async function apiRequest(path, options = {}) {
-  if (!API_BASE_URL) {
-    throw new ApiError(
-      "Backend is not configured. Set VITE_API_BASE_URL in your environment.",
-      0
-    );
-  }
-
   const { method = "GET", body, headers = {}, auth = true } = options;
 
   const requestHeaders = {

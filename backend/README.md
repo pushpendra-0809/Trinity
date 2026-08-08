@@ -1,75 +1,78 @@
-# 🚀 InterviewOS Backend - Adaptive AI Technical Interviewer
+# TRINITY Backend
 
-Backend API engine for **InterviewOS** built with FastAPI and Google Gemini API.
+FastAPI backend for the TRINITY adaptive AI interviewer. It integrates:
 
----
+- candidate profile loading from `backend/data/candidate.json`
+- curriculum-grounded retrieval from `backend/data/curriculum.json`
+- candidate-aware topic selection
+- adaptive question generation
+- answer evaluation with bluff/superficial detection
+- in-memory interview sessions
+- final structured feedback and Interview DNA
 
-## 🛠️ Tech Stack & Features
+The backend supports both required API styles:
 
-- **Framework:** Python, FastAPI, Uvicorn, Pydantic
-- **AI Integration:** Google Gemini API (`google-generativeai` / `google-genai`) with fallback heuristic evaluator
-- **State Management:** Session-based conversation memory & difficulty adaptation engine
-- **Submission Spec Compliance:** Exposes `POST /api/interview` complying strictly with `technical.md`
+- Hackathon spec: `POST /api/interview`
+- Frozen frontend contract: `/api/interviews/...`
 
----
+## Setup
 
-## 🚀 Quick Start Guide
-
-### 1. Install Dependencies
 ```bash
-pip install -r requirements.txt
+cd backend
+python -m pip install -r requirements.txt
+copy .env.example .env
 ```
 
-### 2. Configure Environment (Optional)
-Add your Gemini API Key to `.env`:
+`GEMINI_API_KEY` is optional. Without it, TRINITY uses deterministic local question and evaluation fallbacks.
+
+## Environment
+
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=
+MODEL_NAME=gemini-2.5-flash
+EMBEDDING_MODEL=local-tfidf
+HOST=0.0.0.0
+PORT=8000
 ```
-*(Note: If no API key is set, the backend automatically uses its built-in heuristic evaluation engine so you can test immediately without any blocking dependencies!)*
 
-### 3. Run Server
+## Run
+
 ```bash
-python app/main.py
+cd backend
+python main.py
 ```
-Or:
+
+Equivalent:
+
 ```bash
-uvicorn app.main:app --reload --port 8000
+cd backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Access Interactive Documentation at: **http://localhost:8000/docs**
+For the existing Vite frontend, set:
 
----
-
-## 📡 API Endpoints
-
-### 1. Official Submission Endpoint
-`POST /api/interview`
-
-#### Turn 1: Start Interview
-```json
-POST /api/interview
-{
-  "sessionId": "session-101",
-  "candidate": {
-    "member": {
-      "id": "CAND-001",
-      "name": "Sarah Johnson",
-      "jobRole": "Senior Data Engineer"
-    }
-  }
-}
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
-#### Turn 2..N: Conversation Turn
-```json
-POST /api/interview
-{
-  "sessionId": "session-101",
-  "message": "I used FAISS vector database with HNSW indexing for low latency search."
-}
-```
+## Main APIs
 
-### 2. Additional Helper Endpoints
-- `GET /api/candidates` - Get list of candidates for Frontend selection dropdown
-- `GET /api/personas` - Get available interviewer personas
-- `GET /api/interview/{sessionId}/state` - View live session memory state
+- `POST /api/interview` - official conversational endpoint
+- `GET /api/interviews/configuration` - frontend setup options
+- `POST /api/interviews` - start frontend interview
+- `GET /api/interviews/{id}` - load interview state
+- `POST /api/interviews/{id}/questions/{questionId}/answer` - submit answer and generate next adaptive question
+- `POST /api/interviews/{id}/complete` - complete interview
+- `GET /api/interviews/{id}/result` - structured result
+- `GET /api/interviews/history` - in-memory history
+- `GET /api/candidates` - candidate profiles
+- `GET /api/personas` - interviewer personas
+
+## Verify Full Interview Flow
+
+Run the engine-level simulation without needing a network LLM:
+
+```bash
+cd backend
+python -c "from app.services.orchestrator import orchestrator_engine; from app.services.rag_service import knowledge_engine; sid='verify'; cand=knowledge_engine.get_candidate_by_id('CAND-002'); print(orchestrator_engine.handle_turn(sid,cand,None)['reply'].splitlines()[0]); answers=['I would create embeddings for chunks, store vectors with metadata, compare query vectors by similarity, and measure recall and latency because retrieval quality controls final answer quality.','Vector databases store AI knowledge.','I would debug query text, embedding versions, dimensions, metadata filters, index rebuilds, and retrieval logs.','Prompt engineering needs constraints, examples, schema validation, and retry handling.','Function calling needs typed schemas, server validation, timeouts, and tool error handling.','Chat state should separate recent turns, summary memory, retrieved context, and user profile.','Agents need capability routing, budgets, logs, and approval gates.','Deployment needs env secrets, health checks, logs, metrics, and rollback planning.']; [print(orchestrator_engine.handle_turn(sid,None,a)['done']) for a in answers]"
+```

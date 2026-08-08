@@ -42,25 +42,48 @@ export function useInterview(interviewId) {
   }, [interviewId]);
 
   useEffect(() => {
-    loadInterview();
-  }, [loadInterview]);
+    let isMounted = true;
+    if (!interviewId) return;
 
-  useEffect(() => {
-    if (!currentQuestion) {
-      setAnswer("");
-      return;
+    async function fetchInterviewData() {
+      try {
+        const data = await getInterview(interviewId);
+        if (isMounted) {
+          setInterview(data);
+          setCurrentQuestionIndex(data.currentQuestionIndex ?? 0);
+          setSubmittedAnswers(data.submittedAnswers ?? {});
+          setIsComplete(data.status === "completed");
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
     }
 
-    const existingAnswer = submittedAnswers[currentQuestion.id];
-    setAnswer(existingAnswer ?? "");
-  }, [currentQuestion, submittedAnswers]);
+    fetchInterviewData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [interviewId]);
+
+  const currentQuestionId = currentQuestion?.id;
+  const existingSavedAnswer = currentQuestionId ? submittedAnswers[currentQuestionId] : undefined;
+  const [prevQuestionId, setPrevQuestionId] = useState(currentQuestionId);
+
+  if (currentQuestionId !== prevQuestionId) {
+    setPrevQuestionId(currentQuestionId);
+    setAnswer(existingSavedAnswer ?? "");
+  }
 
   const goToQuestion = useCallback(
     (index) => {
       if (index < 0 || index >= totalQuestions) {
         return;
       }
-
       setCurrentQuestionIndex(index);
     },
     [totalQuestions]
@@ -83,22 +106,23 @@ export function useInterview(interviewId) {
     setError(null);
 
     try {
-      await submitAnswer(interviewId, currentQuestion.id, answer);
+      const updated = await submitAnswer(interviewId, currentQuestion.id, answer);
 
-      setSubmittedAnswers((prev) => ({
-        ...prev,
-        [currentQuestion.id]: answer,
-      }));
+      if (updated) {
+        setInterview(updated);
+        setSubmittedAnswers(updated.submittedAnswers ?? {});
+        setCurrentQuestionIndex(updated.currentQuestionIndex ?? 0);
 
-      if (currentQuestionIndex < totalQuestions - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1);
+        if (updated.status === "completed") {
+          setIsComplete(true);
+        }
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
-  }, [answer, currentQuestion, currentQuestionIndex, interviewId, totalQuestions]);
+  }, [answer, currentQuestion, interviewId]);
 
   const handleCompleteInterview = useCallback(async () => {
     if (!interviewId) {
@@ -109,7 +133,10 @@ export function useInterview(interviewId) {
     setError(null);
 
     try {
-      await completeInterview(interviewId);
+      const data = await completeInterview(interviewId);
+      if (data) {
+        setInterview(data);
+      }
       setIsComplete(true);
     } catch (err) {
       setError(err.message);

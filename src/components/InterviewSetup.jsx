@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./InterviewSetup.css";
 
-function InterviewSetup({ onBack, onStart }) {
+function InterviewSetup({ onBack, onStart, isSubmitting }) {
   const [candidateName, setCandidateName] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [experience, setExperience] = useState("");
@@ -229,8 +229,9 @@ function InterviewSetup({ onBack, onStart }) {
           <button
             type="submit"
             className="start-setup-button"
+            disabled={isSubmitting}
           >
-            <span>Continue to Interview</span>
+            <span>{isSubmitting ? "Starting interview..." : "Continue to Interview"}</span>
             <span>→</span>
           </button>
 

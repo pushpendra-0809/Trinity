@@ -53,7 +53,7 @@
 //     </>
 //   );
 // }
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -149,6 +149,11 @@ export default function App() {
 
           <Route
             path="/dashboard"
+            element={<DashboardPage />}
+          />
+
+          <Route
+            path="/history"
             element={<DashboardPage />}
           />
 

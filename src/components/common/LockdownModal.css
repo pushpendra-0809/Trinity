@@ -1,0 +1,167 @@
+/* Lockdown Modal - TRINITY Proctored Lockdown Design System */
+
+.lockdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 4, 12, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: lockdownFadeIn 0.25s ease-out;
+}
+
+.lockdown-modal {
+  width: 100%;
+  max-width: 540px;
+  background: radial-gradient(circle at top, rgba(40, 80, 180, 0.16), transparent 70%),
+    rgba(12, 16, 28, 0.95);
+  border: 1px solid rgba(255, 185, 50, 0.4);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 170, 0, 0.1);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.lockdown-modal-terminated {
+  border-color: rgba(255, 80, 80, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.7), 0 0 50px rgba(255, 60, 60, 0.15);
+}
+
+.lockdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-bottom: 18px;
+}
+
+.lockdown-badge-warning {
+  background: rgba(255, 170, 0, 0.12);
+  border: 1px solid rgba(255, 185, 50, 0.35);
+  color: #ffca66;
+}
+
+.lockdown-badge-error {
+  background: rgba(255, 70, 70, 0.15);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  color: #ff9999;
+}
+
+.lockdown-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lockdown-notice-highlight {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffe099;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: rgba(255, 180, 50, 0.08);
+  border-left: 3px solid #ffb833;
+  border-radius: 8px;
+}
+
+.lockdown-notice-terminated {
+  color: #ffb3b3;
+  background: rgba(255, 80, 80, 0.1);
+  border-left-color: #ff5555;
+}
+
+.lockdown-body {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.lockdown-body p {
+  margin: 0 0 10px 0;
+}
+
+.lockdown-agreement {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.lockdown-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.lockdown-btn-cancel {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lockdown-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.lockdown-btn-continue {
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #e69d00, #ffb833);
+  color: #050814;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(255, 170, 0, 0.3);
+}
+
+.lockdown-btn-continue:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 170, 0, 0.45);
+}
+
+.lockdown-btn-terminate {
+  background: linear-gradient(135deg, #d93838, #ff5555);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(255, 60, 60, 0.35);
+}
+
+.lockdown-btn-terminate:hover {
+  box-shadow: 0 6px 25px rgba(255, 60, 60, 0.5);
+}
+
+@keyframes lockdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

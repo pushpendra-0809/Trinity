@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InterviewSetup from "../components/InterviewSetup";
+import {
+  LockdownConsentModal,
+  LockdownFullscreenErrorModal,
+} from "../components/common/LockdownModal";
 import { getInterviewConfiguration, startInterview } from "../services/interviewService";
 import "../styles/shared.css";
 
@@ -9,6 +13,10 @@ export default function InterviewSetupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [configOptions, setConfigOptions] = useState(null);
+
+  const [pendingConfig, setPendingConfig] = useState(null);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showFullscreenError, setShowFullscreenError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +41,7 @@ export default function InterviewSetupPage() {
     };
   }, []);
 
-  const handleStart = async (config) => {
+  const handleStartInterview = async (config) => {
     setSubmitting(true);
     setError(null);
 
@@ -51,6 +59,47 @@ export default function InterviewSetupPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleInitialFormSubmit = (config) => {
+    setPendingConfig(config);
+    setShowConsentModal(true);
+  };
+
+  const handleCancelConsent = () => {
+    setShowConsentModal(false);
+    setPendingConfig(null);
+  };
+
+  const requestFullscreenAndStart = async (configToStart) => {
+    const targetConfig = configToStart || pendingConfig;
+    try {
+      const docEl = document.documentElement;
+      if (docEl.requestFullscreen) {
+        await docEl.requestFullscreen();
+      } else if (docEl.webkitRequestFullscreen) {
+        await docEl.webkitRequestFullscreen();
+      } else if (docEl.msRequestFullscreen) {
+        await docEl.msRequestFullscreen();
+      }
+      setShowFullscreenError(false);
+      if (targetConfig) {
+        await handleStartInterview(targetConfig);
+      }
+    } catch (err) {
+      console.warn("Fullscreen permission rejected or failed:", err);
+      setShowFullscreenError(true);
+    }
+  };
+
+  const handleConfirmConsent = async () => {
+    setShowConsentModal(false);
+    await requestFullscreenAndStart(pendingConfig);
+  };
+
+  const handleCancelFullscreenError = () => {
+    setShowFullscreenError(false);
+    setPendingConfig(null);
   };
 
   return (
@@ -72,9 +121,21 @@ export default function InterviewSetupPage() {
 
       <InterviewSetup
         onBack={() => navigate("/dashboard")}
-        onStart={handleStart}
+        onStart={handleInitialFormSubmit}
         isSubmitting={submitting}
         configOptions={configOptions}
+      />
+
+      <LockdownConsentModal
+        isOpen={showConsentModal}
+        onConfirm={handleConfirmConsent}
+        onCancel={handleCancelConsent}
+      />
+
+      <LockdownFullscreenErrorModal
+        isOpen={showFullscreenError}
+        onRetry={() => requestFullscreenAndStart(pendingConfig)}
+        onCancel={handleCancelFullscreenError}
       />
     </>
   );

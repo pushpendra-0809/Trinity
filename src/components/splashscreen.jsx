@@ -611,7 +611,7 @@
 //   );
 // }
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import logo from "../assets/logo.png";
 
@@ -1170,10 +1170,21 @@ export default function SplashScreen({ onAnimationComplete }) {
               color: "#0d285f",
             }}
           >
-            TRIN
+            TR
+            <span
+            style={{
+              color: "#c99b3b",
+
+              fontWeight: "400",
+
+              marginLeft: "0.02em",
+              marginRight: "0.02em",
+            }}
+          >
+            I
           </span>
-
-
+          N
+          </span>
           <span
             style={{
               color: "#c99b3b",

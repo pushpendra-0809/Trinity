@@ -1,4 +1,3 @@
-import React from "react";
 import "./StateComponents.css";
 
 export function LoadingState({ message = "Loading..." }) {
