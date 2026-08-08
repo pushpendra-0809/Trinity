@@ -1,0 +1,691 @@
+/* =========================================================
+   TRINITY — HOMEPAGE
+   Premium dark / editorial / AI aesthetic
+========================================================= */
+
+.home-page {
+  min-height: 100vh;
+  width: 100%;
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(54, 91, 180, 0.12),
+      transparent 38%
+    ),
+    #030509;
+  color: #f4f6fb;
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 4.5vw;
+
+  z-index: 100;
+
+  background: rgba(3, 5, 9, 0.72);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+
+/* LOGO */
+
+.nav-logo {
+  border: none;
+  background: transparent;
+
+  color: #f4f6fb;
+
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+
+  letter-spacing: -0.02em;
+
+  cursor: pointer;
+
+  padding: 8px 0;
+
+  transition: opacity 0.25s ease;
+}
+
+.nav-logo:hover {
+  opacity: 0.7;
+}
+
+
+/* NAV LINKS */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+
+  gap: 38px;
+}
+
+.nav-links button {
+  position: relative;
+
+  border: none;
+  background: transparent;
+
+  color: rgba(235, 239, 250, 0.72);
+
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+
+  cursor: pointer;
+
+  padding: 8px 0;
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.nav-links button:hover {
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+
+/* subtle underline */
+
+.nav-links button:not(.get-started)::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: 1px;
+
+  width: 0;
+  height: 1px;
+
+  background: #9bbcff;
+
+  transition: width 0.3s ease;
+}
+
+.nav-links button:not(.get-started):hover::after {
+  width: 100%;
+}
+
+
+/* GET STARTED */
+
+.nav-links .get-started {
+  color: #ffffff;
+
+  margin-left: 12px;
+
+  padding: 10px 0;
+}
+
+.nav-links .get-started::after {
+  content: "↗";
+
+  margin-left: 5px;
+
+  color: #9bbcff;
+
+  transition: transform 0.25s ease;
+}
+
+.nav-links .get-started:hover::after {
+  display: inline-block;
+  transform: translate(2px, -2px);
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding:
+    150px
+    7vw
+    90px;
+
+  box-sizing: border-box;
+
+  position: relative;
+}
+
+
+/* subtle glow */
+
+.hero::before {
+  content: "";
+
+  position: absolute;
+
+  width: 650px;
+  height: 420px;
+
+  top: 18%;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(64, 105, 205, 0.12),
+      transparent 68%
+    );
+
+  filter: blur(45px);
+
+  pointer-events: none;
+}
+
+
+/* EYEBROW */
+
+.hero-eyebrow {
+  position: relative;
+  z-index: 2;
+
+  margin-bottom: 30px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 12px;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+  color: rgba(190, 204, 235, 0.65);
+}
+
+
+/* tiny gold/blue dot */
+
+.hero-eyebrow::before {
+  content: "";
+
+  display: inline-block;
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  margin-right: 10px;
+
+  background: #cba452;
+
+  box-shadow: 0 0 12px rgba(203, 164, 82, 0.6);
+}
+
+
+/* =========================================================
+   MAIN HEADING
+========================================================= */
+
+.hero-title {
+  position: relative;
+  z-index: 2;
+
+  max-width: 1200px;
+
+  margin: 0;
+
+  font-family:
+    Inter,
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: clamp(
+    58px,
+    7.2vw,
+    108px
+  );
+
+  font-weight: 400;
+
+  line-height: 0.96;
+
+  letter-spacing: -0.065em;
+
+  color: #f7f8fc;
+}
+
+
+/* gradient word */
+
+.hero-title .gradient-text {
+  background:
+    linear-gradient(
+      110deg,
+      #dce8ff 0%,
+      #9ab8f0 45%,
+      #6f96d8 100%
+    );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.hero-description {
+  position: relative;
+  z-index: 2;
+
+  max-width: 650px;
+
+  margin: 34px auto 0;
+
+  color: rgba(190, 202, 225, 0.72);
+
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+
+  font-size: 16px;
+
+  line-height: 1.75;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   CTA
+========================================================= */
+
+.hero-actions {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-top: 42px;
+}
+
+
+/* PRIMARY */
+
+.primary-btn {
+  min-width: 180px;
+
+  height: 56px;
+
+  padding: 0 25px;
+
+  border-radius: 4px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+
+  background: #f5f6f8;
+
+  color: #07090d;
+
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 22px;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.primary-btn span {
+  font-size: 20px;
+
+  transition: transform 0.3s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 15px 40px rgba(255, 255, 255, 0.12);
+}
+
+.primary-btn:hover span {
+  transform: translateX(4px);
+}
+
+
+/* =========================================================
+   TRUST / TAGLINE
+========================================================= */
+
+.hero-tagline {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 68px;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 13px;
+
+  font-style: italic;
+
+  letter-spacing: 0.12em;
+
+  color: rgba(180, 192, 217, 0.45);
+}
+
+
+/* =========================================================
+   PRODUCT SECTION
+========================================================= */
+
+.product-section,
+.how-section,
+.about-section {
+  position: relative;
+
+  min-height: 80vh;
+
+  padding:
+    140px
+    8vw;
+
+  box-sizing: border-box;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+
+/* section heading */
+
+.section-kicker {
+  font-size: 11px;
+
+  letter-spacing: 0.2em;
+
+  text-transform: uppercase;
+
+  color: rgba(155, 188, 255, 0.7);
+
+  margin-bottom: 20px;
+}
+
+.section-title {
+  margin: 0;
+
+  max-width: 850px;
+
+  font-size: clamp(42px, 5vw, 76px);
+
+  font-weight: 400;
+
+  line-height: 1;
+
+  letter-spacing: -0.05em;
+
+  color: #f4f6fb;
+}
+
+
+/* =========================================================
+   PREMIUM FEATURE CARDS
+========================================================= */
+
+.feature-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 18px;
+
+  margin-top: 80px;
+}
+
+.feature-card {
+  min-height: 240px;
+
+  padding: 32px;
+
+  border-radius: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.015)
+    );
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.04);
+
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+
+  border-color:
+    rgba(150, 184, 255, 0.22);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(100, 140, 220, 0.08),
+      rgba(255, 255, 255, 0.02)
+    );
+}
+
+.feature-number {
+  font-size: 12px;
+
+  letter-spacing: 0.15em;
+
+  color: rgba(203, 164, 82, 0.75);
+}
+
+.feature-card h3 {
+  margin-top: 55px;
+
+  font-size: 22px;
+
+  font-weight: 400;
+
+  letter-spacing: -0.02em;
+}
+
+.feature-card p {
+  margin-top: 14px;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  color: rgba(190, 202, 225, 0.6);
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.site-footer {
+  padding: 50px 8vw;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+  color: rgba(190, 202, 225, 0.55);
+
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 800px) {
+
+  .navbar {
+    padding: 0 24px;
+  }
+
+  .nav-links {
+    gap: 18px;
+  }
+
+  .nav-links button {
+    font-size: 12px;
+  }
+
+  .nav-links .get-started {
+    display: none;
+  }
+
+  .hero {
+    padding:
+      130px
+      24px
+      70px;
+  }
+
+  .hero-title {
+    font-size: clamp(48px, 13vw, 76px);
+
+    line-height: 0.98;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .hero-actions {
+    margin-top: 34px;
+  }
+
+  .primary-btn {
+    min-width: 165px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-section,
+  .how-section,
+  .about-section {
+    padding:
+      100px
+      24px;
+  }
+
+  .site-footer {
+    padding: 40px 24px;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .nav-logo {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 13px;
+  }
+
+  .nav-links button {
+    font-size: 11px;
+  }
+
+  .hero-title {
+    font-size: 47px;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .primary-btn {
+    width: 100%;
+  }
+}

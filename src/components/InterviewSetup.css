@@ -1,0 +1,627 @@
+/* ================================================= */
+/* ================= GLOBAL ======================== */
+/* ================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.setup-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #020308;
+  color: #ffffff;
+  overflow-x: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+
+
+/* ================================================= */
+/* ================= BACKGROUND ==================== */
+/* ================================================= */
+
+.setup-glow {
+  position: fixed;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+
+  background: rgba(50, 100, 255, 0.13);
+
+  filter: blur(140px);
+
+  top: -350px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
+  z-index: 0;
+}
+
+.setup-glow-secondary {
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+
+  background: rgba(20, 70, 180, 0.08);
+
+  filter: blur(150px);
+
+  bottom: -250px;
+  right: -200px;
+
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ================================================= */
+/* ================= HEADER ======================== */
+/* ================================================= */
+
+.setup-header {
+  width: 100%;
+  height: 80px;
+
+  padding: 0 7%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(2, 3, 8, 0.9);
+
+  position: relative;
+  z-index: 10;
+
+  backdrop-filter: blur(15px);
+}
+
+
+/* ================= BACK BUTTON ================= */
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 0;
+
+  border: none;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.6);
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+}
+
+.back-button span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.back-button:hover {
+  color: #ffffff;
+  transform: translateX(-3px);
+}
+
+
+/* ================= LOGO ================= */
+
+.setup-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 600;
+
+  letter-spacing: 0.3em;
+}
+
+
+/* ================= STEP ================= */
+
+.setup-step {
+  color: rgba(255, 255, 255, 0.45);
+
+  font-size: 11px;
+
+  letter-spacing: 0.18em;
+}
+
+.setup-step span {
+  color: rgba(255, 255, 255, 0.2);
+  margin: 0 5px;
+}
+
+
+/* ================================================= */
+/* ================= MAIN ========================== */
+/* ================================================= */
+
+.setup-main {
+  min-height: calc(100vh - 80px);
+
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  padding: 75px 20px 60px;
+
+  position: relative;
+  z-index: 2;
+}
+
+
+/* ================================================= */
+/* ================= BADGE ========================= */
+/* ================================================= */
+
+.setup-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 9px 17px;
+
+  border-radius: 999px;
+
+  border: 1px solid rgba(100, 160, 255, 0.3);
+
+  background: rgba(70, 120, 255, 0.07);
+
+  color: #a9c7ff;
+
+  font-size: 11px;
+
+  letter-spacing: 0.2em;
+
+  margin-bottom: 25px;
+}
+
+
+/* ================================================= */
+/* ================= HEADING ======================= */
+/* ================================================= */
+
+.setup-main h1 {
+  margin: 0;
+
+  max-width: 800px;
+
+  text-align: center;
+
+  font-size: clamp(48px, 6vw, 78px);
+
+  line-height: 1.02;
+
+  letter-spacing: -0.05em;
+
+  font-weight: 500;
+
+  color: #ffffff;
+}
+
+.setup-main h1 span {
+  display: block;
+
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #91b7ff 50%,
+    #ffffff 100%
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+}
+
+
+/* ================================================= */
+/* ================= DESCRIPTION =================== */
+/* ================================================= */
+
+.setup-description {
+  max-width: 650px;
+
+  margin: 28px 0 0;
+
+  text-align: center;
+
+  color: rgba(255, 255, 255, 0.5);
+
+  font-size: 16px;
+
+  line-height: 1.8;
+}
+
+
+/* ================================================= */
+/* ================= FORM CARD ===================== */
+/* ================================================= */
+
+.setup-card {
+  width: 100%;
+
+  max-width: 720px;
+
+  margin-top: 45px;
+
+  padding: 40px;
+
+  border-radius: 22px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(40, 80, 170, 0.12),
+      transparent 55%
+    ),
+    rgba(255, 255, 255, 0.025);
+
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.35);
+
+  backdrop-filter: blur(20px);
+}
+
+
+/* ================================================= */
+/* ================= FORM GROUP ==================== */
+/* ================================================= */
+
+.form-group {
+  margin-bottom: 28px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: rgba(255, 255, 255, 0.5);
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.18em;
+}
+
+
+/* ================================================= */
+/* ================= INPUTS ======================== */
+/* ================================================= */
+
+.form-group input,
+.form-group select {
+  width: 100%;
+
+  height: 52px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  background: rgba(255, 255, 255, 0.045);
+
+  color: #ffffff;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: rgba(120, 165, 255, 0.7);
+
+  background: rgba(255, 255, 255, 0.065);
+
+  box-shadow:
+    0 0 0 3px rgba(80, 130, 255, 0.08);
+}
+
+
+/* SELECT */
+
+.form-group select {
+  appearance: none;
+
+  cursor: pointer;
+
+  background-color: rgba(255, 255, 255, 0.045);
+}
+
+.form-group select option {
+  background: #0a0d18;
+
+  color: #ffffff;
+}
+
+
+/* ================================================= */
+/* ================= INTERVIEW TYPES =============== */
+/* ================================================= */
+
+.interview-types {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+
+.type-option {
+  min-height: 90px;
+
+  padding: 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  text-align: left;
+
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.type-option:hover {
+  background: rgba(255, 255, 255, 0.055);
+
+  border-color: rgba(255, 255, 255, 0.2);
+
+  transform: translateY(-2px);
+}
+
+.type-option.active {
+  border-color: rgba(120, 165, 255, 0.75);
+
+  background: rgba(80, 130, 255, 0.1);
+
+  box-shadow:
+    0 0 25px rgba(60, 110, 255, 0.08);
+}
+
+
+/* ICON */
+
+.type-icon {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  color: #a9c7ff;
+
+  font-size: 16px;
+}
+
+
+/* TYPE TEXT */
+
+.type-option strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+.type-option small {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.38);
+
+  font-size: 10px;
+
+  line-height: 1.4;
+}
+
+
+/* ================================================= */
+/* ================= SUBMIT BUTTON ================= */
+/* ================================================= */
+
+.start-setup-button {
+  width: 100%;
+
+  height: 58px;
+
+  margin-top: 8px;
+
+  padding: 0 24px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+
+  background: #ffffff;
+
+  color: #050816;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.start-setup-button span:last-child {
+  font-size: 20px;
+}
+
+.start-setup-button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 15px 45px rgba(255, 255, 255, 0.15);
+}
+
+.start-setup-button:active {
+  transform: translateY(0);
+}
+
+
+/* ================================================= */
+/* ================= FOOTER ======================== */
+/* ================================================= */
+
+.setup-footer {
+  margin-top: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  color: rgba(255, 255, 255, 0.25);
+
+  font-size: 9px;
+
+  letter-spacing: 0.18em;
+
+  text-align: center;
+}
+
+.footer-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #6fa3ff;
+
+  box-shadow:
+    0 0 10px rgba(80, 140, 255, 0.7);
+}
+
+
+/* ================================================= */
+/* ================= MOBILE ======================== */
+/* ================================================= */
+
+@media (max-width: 800px) {
+
+  .setup-header {
+    height: 70px;
+    padding: 0 5%;
+  }
+
+  .setup-logo {
+    font-size: 17px;
+  }
+
+  .setup-step {
+    font-size: 9px;
+  }
+
+  .setup-main {
+    min-height: calc(100vh - 70px);
+
+    padding: 55px 18px 45px;
+  }
+
+  .setup-main h1 {
+    font-size: clamp(43px, 12vw, 65px);
+  }
+
+  .setup-description {
+    font-size: 14px;
+  }
+
+  .setup-card {
+    padding: 25px 20px;
+
+    margin-top: 35px;
+  }
+
+  .interview-types {
+    grid-template-columns: 1fr;
+  }
+
+  .type-option {
+    min-height: 70px;
+  }
+
+  .setup-footer {
+    font-size: 8px;
+    letter-spacing: 0.12em;
+  }
+}
