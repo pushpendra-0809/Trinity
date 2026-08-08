@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import List
 
-from loader import load_curriculum
+from .loader import load_curriculum
 
 logger = logging.getLogger(__name__)
 
