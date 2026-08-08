@@ -1,5 +1,6 @@
 .result-page {
-  max-width: 900px;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 .result-description {
@@ -8,11 +9,33 @@
 
 .result-card {
   margin-top: 32px;
+  padding: 32px;
+}
+
+.dashboard-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #a9c7ff;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-section-title::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6fa3ff;
 }
 
 .result-section {
-  padding-bottom: 28px;
-  margin-bottom: 28px;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -23,10 +46,11 @@
 }
 
 .result-section h2 {
-  margin: 0 0 14px;
-  font-size: 16px;
-  font-weight: 500;
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
   color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
 .result-empty {
@@ -36,132 +60,148 @@
   line-height: 1.7;
 }
 
-.result-score {
-  font-size: 48px;
-  font-weight: 500;
-  color: #a9c7ff;
+/* ==================================================
+   SCORE HERO SECTION (CIRCULAR GAUGE & BADGES)
+================================================== */
+
+.score-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 24px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top, rgba(80, 140, 255, 0.12), transparent 70%),
+    rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  margin-bottom: 36px;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.score-ring-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.score-ring-svg {
+  transform: rotate(-90deg);
+  width: 160px;
+  height: 160px;
+}
+
+.score-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.score-ring-progress {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.score-ring-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-ring-val {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
   letter-spacing: -0.03em;
 }
 
-.result-text {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 15px;
-  line-height: 1.8;
+.score-ring-denom {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
 }
 
-.result-list {
-  margin: 0;
-  padding-left: 20px;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.8;
-}
-
-.result-questions {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.result-question-item {
-  padding: 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.result-question-item h3 {
-  margin: 0 0 10px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.result-question-item p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.result-analysis {
-  margin-top: 8px !important;
-  color: rgba(255, 255, 255, 0.45) !important;
-}
-
-.result-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
-}
-
-/* Termination Reason Banner Styles */
-.termination-banner {
-  margin-bottom: 32px;
-  padding: 24px;
-  border-radius: 16px;
-  background: rgba(255, 70, 70, 0.08);
-  border: 1px solid rgba(255, 100, 100, 0.35);
-  box-shadow: 0 10px 30px rgba(255, 50, 50, 0.12);
-}
-
-.termination-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 70, 70, 0.2);
-  border: 1px solid rgba(255, 100, 100, 0.4);
-  color: #ff9999;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+.score-hero-status {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin-bottom: 12px;
 }
 
-.termination-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffcccc;
-  line-height: 1.4;
-  margin: 0 0 10px 0;
+.score-hero-meta {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.termination-explanation {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
-  margin: 0 0 16px 0;
+.score-hero-meta strong {
+  color: #ffffff;
 }
 
-.termination-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.85);
+/* Tier Colors */
+.score-hero-card.excellent {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+.score-hero-card.strong {
+  border-color: rgba(56, 189, 248, 0.3);
+}
+.score-hero-card.moderate {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.score-hero-card.improvement {
+  border-color: rgba(249, 115, 22, 0.3);
+}
+.score-hero-card.weak {
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
-.termination-meta-item strong {
-  color: #ff9999;
-}
+/* ==================================================
+   AREA PERFORMANCE SECTION
+================================================== */
 
-/* Area Performance Grid Styles */
 .area-performance-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
 }
 
 .area-score-card {
-  padding: 14px 16px;
-  border-radius: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.area-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -170,7 +210,7 @@
 
 .area-name {
   font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
@@ -181,7 +221,7 @@
 }
 
 .area-score-val.not-assessed {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.06);
@@ -189,7 +229,113 @@
   border-radius: 6px;
 }
 
-/* Question Breakdown Grid/List Styles */
+.area-bar-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.area-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  transition: width 0.4s ease;
+}
+
+/* ==================================================
+   TWO COLUMN DASHBOARD LAYOUT (STRENGTHS / WEAKNESSES)
+================================================== */
+
+.dashboard-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.dashboard-col-card {
+  padding: 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-col-card.strengths-card {
+  border-left: 3px solid #10b981;
+}
+
+.dashboard-col-card.weaknesses-card {
+  border-left: 3px solid #f59e0b;
+}
+
+.dashboard-col-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-col-card.strengths-card .dashboard-col-title {
+  color: #6ee7b7;
+}
+
+.dashboard-col-card.weaknesses-card .dashboard-col-title {
+  color: #fde047;
+}
+
+.result-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.result-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14.5px;
+  line-height: 1.75;
+}
+
+/* ==================================================
+   SECTION B: QUESTION DETAILS & BREAKDOWN
+================================================== */
+
+.section-b-container {
+  margin-top: 40px;
+  padding-top: 36px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.12);
+}
+
+.section-b-header {
+  margin-bottom: 24px;
+}
+
+.section-b-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(169, 199, 255, 0.1);
+  border: 1px solid rgba(169, 199, 255, 0.2);
+  color: #a9c7ff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.section-b-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
 .question-breakdown-grid {
   display: flex;
   flex-direction: column;
@@ -252,7 +398,103 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+.result-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-question-item {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.result-question-item h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.result-question-item p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.result-analysis {
+  margin-top: 8px !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+/* Termination Reason Banner Styles */
+.termination-banner {
+  margin-bottom: 32px;
+  padding: 24px;
+  border-radius: 16px;
+  background: rgba(255, 70, 70, 0.08);
+  border: 1px solid rgba(255, 100, 100, 0.35);
+  box-shadow: 0 10px 30px rgba(255, 50, 50, 0.12);
+}
+
+.termination-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 70, 70, 0.2);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  color: #ff9999;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+
+.termination-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffcccc;
+  line-height: 1.4;
+  margin: 0 0 10px 0;
+}
+
+.termination-explanation {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.termination-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.termination-meta-item strong {
+  color: #ff9999;
+}
+
 @media (max-width: 800px) {
+  .dashboard-two-col {
+    grid-template-columns: 1fr;
+  }
+
   .result-actions {
     flex-direction: column;
   }

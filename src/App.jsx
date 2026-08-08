@@ -71,6 +71,7 @@ import DashboardPage from "./pages/DashboardPage";
 import InterviewSetupPage from "./pages/InterviewSetupPage";
 import InterviewPage from "./pages/InterviewPage";
 import InterviewResultPage from "./pages/InterviewResultPage";
+import QuestionDetailsPage from "./pages/QuestionDetailsPage";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -185,6 +186,16 @@ export default function App() {
           <Route
             path="/interview/:id/result"
             element={<InterviewResultPage />}
+          />
+
+          <Route
+            path="/interview/:id/result/questions"
+            element={<QuestionDetailsPage />}
+          />
+
+          <Route
+            path="/interview/:id/questions"
+            element={<QuestionDetailsPage />}
           />
 
 

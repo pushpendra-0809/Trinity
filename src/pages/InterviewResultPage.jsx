@@ -1,17 +1,88 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/StateComponents";
 import { getInterviewResult } from "../services/interviewService";
 import "../styles/shared.css";
 import "./Result.css";
 
+function getScoreTier(score) {
+  const num = Number(score) || 0;
+  if (num >= 90) {
+    return { label: "Excellent Performance", tierClass: "excellent", color: "#10b981" };
+  }
+  if (num >= 75) {
+    return { label: "Strong Performance", tierClass: "strong", color: "#38bdf8" };
+  }
+  if (num >= 60) {
+    return { label: "Moderate Performance", tierClass: "moderate", color: "#f59e0b" };
+  }
+  if (num >= 40) {
+    return { label: "Needs Improvement", tierClass: "improvement", color: "#f97316" };
+  }
+  return { label: "Weak Performance", tierClass: "weak", color: "#ef4444" };
+}
+
+function ScoreHero({ score, isTerminated, attemptedCount, totalQuestions = 16 }) {
+  const numScore = Math.round(Number(score) || 0);
+  const tier = getScoreTier(numScore);
+
+  const radius = 64;
+  const strokeWidth = 10;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (numScore / 100) * circumference;
+
+  return (
+    <div className={`score-hero-card ${tier.tierClass}`}>
+      <div className="score-hero-badge">
+        TECHNICAL INTERVIEW {isTerminated ? "TERMINATED" : "COMPLETED"}
+      </div>
+
+      <div className="score-ring-container">
+        <svg className="score-ring-svg" viewBox="0 0 160 160">
+          <circle
+            className="score-ring-bg"
+            cx="80"
+            cy="80"
+            r={radius}
+            strokeWidth={strokeWidth}
+          />
+          <circle
+            className="score-ring-progress"
+            cx="80"
+            cy="80"
+            r={radius}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            stroke={tier.color}
+          />
+        </svg>
+        <div className="score-ring-content">
+          <span className="score-ring-val">{numScore}</span>
+          <span className="score-ring-denom">/ 100</span>
+        </div>
+      </div>
+
+      <div className="score-hero-status" style={{ color: tier.color }}>
+        ● {tier.label}
+      </div>
+
+      <div className="score-hero-meta">
+        <span>
+          Questions Attempted: <strong>{attemptedCount} / {totalQuestions}</strong>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ResultSection({ title, children, emptyText }) {
   const isEmpty = !children || (Array.isArray(children) && children.length === 0);
 
   return (
     <section className="result-section">
-      <h2>{title}</h2>
+      {title && <h2>{title}</h2>}
       {isEmpty ? <p className="result-empty">{emptyText}</p> : children}
     </section>
   );
@@ -19,6 +90,7 @@ function ResultSection({ title, children, emptyText }) {
 
 export default function InterviewResultPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -82,24 +154,32 @@ export default function InterviewResultPage() {
     };
   }, [id]);
 
+  const attemptedCount =
+    terminationInfo?.questionsAttempted ??
+    result?.attempted_questions ??
+    (Array.isArray(result?.questionFeedback) ? result.questionFeedback.length : 0);
+
+  const totalQuestions =
+    terminationInfo?.totalQuestions ?? result?.total_questions ?? 16;
+
   return (
     <AppShell>
       <div className="result-page">
         <div className="page-badge">
-          {terminationInfo?.isTerminated ? "TEST TERMINATED" : "INTERVIEW RESULTS"}
+          {terminationInfo?.isTerminated ? "TEST TERMINATED" : "TECHNICAL SCORECARD"}
         </div>
 
         <h1 className="page-title">
-          {terminationInfo?.isTerminated ? "Session Summary" : "Your interview feedback"}
+          {terminationInfo?.isTerminated ? "Assessment Session Summary" : "Candidate Assessment Report"}
         </h1>
 
         <p className="page-description result-description">
           {terminationInfo?.isTerminated
-            ? "Your assessment session was closed due to a browser lockdown policy event. Your responses up to termination have been evaluated below."
-            : "Detailed analysis and recommendations will appear here once the backend generates your results."}
+            ? "Your assessment session was closed due to a browser lockdown policy event. Evaluated metrics for attempted questions are presented below."
+            : "Comprehensive AI technical evaluation report detailing competency scores, area breakdown, and recommended next steps."}
         </p>
 
-        {loading && <LoadingState message="Loading interview results..." />}
+        {loading && <LoadingState message="Generating scorecard..." />}
 
         {!loading && error && <ErrorState message={error} onRetry={loadResult} />}
 
@@ -135,78 +215,109 @@ export default function InterviewResultPage() {
                   </span>
                   <span className="termination-meta-item">
                     <strong>Questions Attempted:</strong>{" "}
-                    {terminationInfo.questionsAttempted ?? 0} / {terminationInfo.totalQuestions ?? 16}
+                    {attemptedCount} / {totalQuestions}
                   </span>
                 </div>
               </div>
             )}
 
-            <ResultSection
-              title="Overall Score"
-              emptyText="Score will appear here once available from the backend."
-            >
-              {result.score != null && (
-                <div className="result-score">{result.score}%</div>
-              )}
-            </ResultSection>
+            {/* ==================================================
+               SECTION A: MAIN PERFORMANCE DASHBOARD
+            ================================================== */}
+            <div className="dashboard-section-title">
+              Section A: Main Performance Dashboard
+            </div>
 
+            {/* Main Score Hero (Circular Gauge & Tier Badge) */}
+            <ScoreHero
+              score={result.score}
+              isTerminated={Boolean(terminationInfo?.isTerminated)}
+              attemptedCount={attemptedCount}
+              totalQuestions={totalQuestions}
+            />
+
+            {/* Performance by Area */}
             <ResultSection
-              title="Area Performance"
-              emptyText="Area performance will appear here once available."
+              title="Performance by Area"
+              emptyText="Area performance metrics will appear here once available."
             >
               {(result.areaScores || result.knowledgeMap) && (
                 <div className="area-performance-grid">
-                  {Object.entries(result.areaScores || {}).map(([area, scoreVal]) => (
-                    <div key={area} className="area-score-card">
-                      <span className="area-name">{area}</span>
-                      <span
-                        className={`area-score-val ${
-                          scoreVal === "Not Assessed" ? "not-assessed" : ""
-                        }`}
-                      >
-                        {scoreVal}
-                      </span>
-                    </div>
-                  ))}
+                  {Object.entries(result.areaScores || {}).map(([area, scoreVal]) => {
+                    const isNotAssessed = scoreVal === "Not Assessed";
+                    const numericVal = isNotAssessed
+                      ? 0
+                      : parseInt(String(scoreVal).replace("%", ""), 10) || 0;
+
+                    return (
+                      <div key={area} className="area-score-card">
+                        <div className="area-card-top">
+                          <span className="area-name">{area}</span>
+                          <span
+                            className={`area-score-val ${isNotAssessed ? "not-assessed" : ""}`}
+                          >
+                            {scoreVal}
+                          </span>
+                        </div>
+                        {!isNotAssessed && (
+                          <div className="area-bar-track">
+                            <div
+                              className="area-bar-fill"
+                              style={{ width: `${Math.min(100, Math.max(0, numericVal))}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </ResultSection>
 
+            {/* Performance Summary */}
             <ResultSection
-              title="Performance Summary"
+              title="Performance Summary & Technical Profile"
               emptyText="Summary will appear here once available."
             >
               {result.summary && <p className="result-text">{result.summary}</p>}
             </ResultSection>
 
-            <ResultSection
-              title="Strengths"
-              emptyText="Strengths will be listed here once available."
-            >
-              {Array.isArray(result.strengths) && result.strengths.length > 0 && (
-                <ul className="result-list">
-                  {result.strengths.map((item, index) => (
-                    <li key={index}>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </ResultSection>
+            {/* Strengths & Weaknesses (Two Column Dashboard Grid) */}
+            <div className="dashboard-two-col">
+              <div className="dashboard-col-card strengths-card">
+                <h3 className="dashboard-col-title">
+                  <span>✓</span> Demonstrated Strengths
+                </h3>
+                {Array.isArray(result.strengths) && result.strengths.length > 0 ? (
+                  <ul className="result-list">
+                    {result.strengths.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="result-empty">Strengths will be listed here once available.</p>
+                )}
+              </div>
 
-            <ResultSection
-              title="Areas for Improvement"
-              emptyText="Improvement areas will be listed here once available."
-            >
-              {Array.isArray(result.weaknesses) && result.weaknesses.length > 0 && (
-                <ul className="result-list">
-                  {result.weaknesses.map((item, index) => (
-                    <li key={index}>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </ResultSection>
+              <div className="dashboard-col-card weaknesses-card">
+                <h3 className="dashboard-col-title">
+                  <span>!</span> Areas for Improvement
+                </h3>
+                {Array.isArray(result.weaknesses) && result.weaknesses.length > 0 ? (
+                  <ul className="result-list">
+                    {result.weaknesses.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="result-empty">Improvement areas will be listed here once available.</p>
+                )}
+              </div>
+            </div>
 
+            {/* Recommendations Roadmap */}
             <ResultSection
-              title="Recommendations"
+              title="Recommended Action Steps"
               emptyText="Recommendations will appear here once available."
             >
               {Array.isArray(result.recommendations) && result.recommendations.length > 0 && (
@@ -218,66 +329,18 @@ export default function InterviewResultPage() {
               )}
             </ResultSection>
 
-            <ResultSection
-              title="Question Breakdown"
-              emptyText="Question breakdown will appear here once available."
-            >
-              <div className="question-breakdown-grid">
-                {Array.from({ length: 16 }, (_, i) => {
-                  const qNum = i + 1;
-                  const item = Array.isArray(result.questionFeedback)
-                    ? result.questionFeedback[i]
-                    : null;
-                  const isAttempted = Boolean(item);
-
-                  return (
-                    <div
-                      key={qNum}
-                      className={`breakdown-item ${isAttempted ? "attempted" : "unattempted"}`}
-                    >
-                      <div className="breakdown-item-header">
-                        <span className="breakdown-q-num">Q{qNum}</span>
-                        <span className="breakdown-q-text">
-                          {isAttempted
-                            ? item.question ?? `Question ${qNum}`
-                            : `Question ${qNum}`}
-                        </span>
-                      </div>
-                      <span
-                        className={`breakdown-status-badge ${
-                          isAttempted ? "attempted" : "unattempted"
-                        }`}
-                      >
-                        {isAttempted ? "✓ Attempted" : "○ Not Attempted"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </ResultSection>
-
-            <ResultSection
-              title="Question-wise Feedback"
-              emptyText="Per-question feedback will appear here once available."
-            >
-              {Array.isArray(result.questionFeedback) && result.questionFeedback.length > 0 && (
-                <div className="result-questions">
-                  {result.questionFeedback.map((item, index) => (
-                    <article key={item.questionId ?? index} className="result-question-item">
-                      <h3>{item.question ?? `Question ${index + 1}`}</h3>
-                      {item.feedback && <p>{item.feedback}</p>}
-                      {item.analysis && <p className="result-analysis">{item.analysis}</p>}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </ResultSection>
-
             <div className="result-actions">
+              <button
+                type="button"
+                className="primary-action-btn"
+                onClick={() => navigate(`/interview/${id}/result/questions`, { state: location.state })}
+              >
+                View Question Attempt Details →
+              </button>
               <Link to="/history" className="secondary-action-btn">
                 View history
               </Link>
-              <Link to="/interview/setup" className="primary-action-btn">
+              <Link to="/interview/setup" className="secondary-action-btn">
                 Start another interview
               </Link>
             </div>
