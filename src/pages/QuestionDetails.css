@@ -205,6 +205,12 @@
   color: #8be6a8;
 }
 
+.q-status-badge.skipped {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
 .q-status-badge.unattempted {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.15);

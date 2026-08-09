@@ -163,6 +163,46 @@
   color: #ffffff;
 }
 
+.score-breakdown-counters {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.counter-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 95px;
+}
+
+.counter-item.correct .counter-val {
+  color: #10b981;
+}
+
+.counter-item.incorrect .counter-val {
+  color: #ef4444;
+}
+
+.counter-item.unattempted .counter-val {
+  color: #94a3b8;
+}
+
+.counter-val {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.counter-lbl {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 2px;
+}
+
 /* Tier Colors */
 .score-hero-card.excellent {
   border-color: rgba(16, 185, 129, 0.3);
@@ -178,6 +218,157 @@
 }
 .score-hero-card.weak {
   border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ==================================================
+   QUESTION TIME ANALYSIS SECTION
+================================================== */
+
+.timing-analysis-card {
+  margin-top: 24px;
+}
+
+.timing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.timing-stat-box {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(100, 160, 255, 0.04);
+  border: 1px solid rgba(100, 160, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.timing-stat-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.timing-stat-lbl {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+.timing-bars-container {
+  margin-top: 16px;
+}
+
+.timing-bars-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 12px;
+}
+
+.timing-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timing-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.timing-row-label {
+  width: 32px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.timing-row-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+.timing-row-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease-out;
+}
+
+.timing-row-time {
+  width: 44px;
+  text-align: right;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.timing-row-badge {
+  width: 130px;
+}
+
+.time-bar-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.time-bar-badge.status-correct {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.time-bar-badge.status-incorrect {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.time-bar-badge.status-skipped {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.time-bar-badge.status-not-attempted,
+.time-bar-badge.status-not-reached {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timing-insights-box {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.timing-insights-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.timing-insights-list {
+  margin: 0;
+  padding-left: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13.5px;
+  line-height: 1.6;
 }
 
 /* ==================================================
@@ -459,6 +650,17 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   margin-bottom: 12px;
+}
+
+.voluntary-exit-banner {
+  background: radial-gradient(circle at top left, rgba(245, 158, 11, 0.15), transparent 70%), rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.termination-badge.warning {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #fcd34d !important;
 }
 
 .termination-title {

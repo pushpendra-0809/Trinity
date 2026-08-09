@@ -68,7 +68,9 @@ import HomePage from "./components/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import HistoryPage from "./pages/HistoryPage";
 import InterviewSetupPage from "./pages/InterviewSetupPage";
+import NewInterviewPage from "./pages/NewInterviewPage";
 import InterviewPage from "./pages/InterviewPage";
 import InterviewResultPage from "./pages/InterviewResultPage";
 import QuestionDetailsPage from "./pages/QuestionDetailsPage";
@@ -145,7 +147,7 @@ export default function App() {
 
 
           {/* ================================================= */}
-          {/* ================= DASHBOARD ===================== */}
+          {/* ================= DASHBOARD & HISTORY =========== */}
           {/* ================================================= */}
 
           <Route
@@ -155,7 +157,7 @@ export default function App() {
 
           <Route
             path="/history"
-            element={<DashboardPage />}
+            element={<HistoryPage />}
           />
 
 
@@ -166,6 +168,17 @@ export default function App() {
           <Route
             path="/interview/setup"
             element={<InterviewSetupPage />}
+          />
+
+          {/* ================================================= */}
+          {/* ====== DASHBOARD NEW TEST (no name form) ========= */}
+          {/* ================================================= */}
+          {/* IMPORTANT: /interview/new must be ABOVE /interview/:id */}
+          {/* so that React Router does not treat "new" as a session id. */}
+
+          <Route
+            path="/interview/new"
+            element={<NewInterviewPage />}
           />
 
 

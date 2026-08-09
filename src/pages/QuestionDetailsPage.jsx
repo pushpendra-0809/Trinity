@@ -102,22 +102,29 @@ export default function QuestionDetailsPage() {
     const item = Array.isArray(result?.questionFeedback)
       ? result.questionFeedback[i]
       : null;
-    const isAttempted = Boolean(item);
+    const isSkipped = item?.status === "skipped" || item?.correctness === "skipped";
+    const isAttempted = Boolean(item && item.attempted !== false && item.question && !isSkipped);
 
-    // Map question index to curriculum area if available
     let areaName = "General Technical";
     if (availableAreas.length > 0) {
       const areaIdx = Math.floor(i / 2) % availableAreas.length;
       areaName = availableAreas[areaIdx];
     }
 
+    const itemScore = item?.score ?? 0;
+    const correctness = isSkipped ? "skipped" : (item?.correctness ?? (isAttempted ? (itemScore > 0 ? "correct" : "incorrect") : "not_attempted"));
+
     return {
       qNum,
       isAttempted,
+      isSkipped,
       question: item?.question ?? `Question ${qNum}`,
-      feedback: item?.feedback ?? null,
-      analysis: item?.analysis ?? null,
-      score: isAttempted ? Math.min(10, Math.max(6, 7 + (qNum % 3))) : null,
+      feedback: isSkipped ? "Question skipped by candidate." : (item?.feedback ?? null),
+      analysis: isSkipped ? "skipped" : (item?.analysis ?? null),
+      score: itemScore,
+      timeSpentSeconds: item?.time_spent_seconds ?? 0,
+      correctness,
+      performanceLevel: isSkipped ? "skipped" : (item?.performance_level ?? (isAttempted ? "strong" : "not_attempted")),
       area: areaName,
     };
   });
@@ -125,7 +132,8 @@ export default function QuestionDetailsPage() {
   // Filter items
   const filteredQuestions = allQuestionItems.filter((q) => {
     if (statusFilter === "attempted" && !q.isAttempted) return false;
-    if (statusFilter === "unattempted" && q.isAttempted) return false;
+    if (statusFilter === "skipped" && !q.isSkipped) return false;
+    if (statusFilter === "unattempted" && (q.isAttempted || q.isSkipped)) return false;
     if (areaFilter !== "all" && q.area !== areaFilter) return false;
     return true;
   });
@@ -141,13 +149,13 @@ export default function QuestionDetailsPage() {
           ← Back to Results
         </button>
 
-        <div className="page-badge">QUESTION ATTEMPT DETAILS</div>
+        <div className="page-badge">DEDICATED BREAKDOWN</div>
         <h1 className="page-title">Question Attempt Details</h1>
-        <p className="page-description result-description">
-          Review your performance across all 16 interview questions.
+        <p className="page-description">
+          Detailed question-by-question response breakdown, scores out of 10 marks, and feedback.
         </p>
 
-        {loading && <LoadingState message="Loading question details..." />}
+        {loading && <LoadingState message="Loading question attempt details..." />}
 
         {!loading && error && <ErrorState message={error} onRetry={loadResult} />}
 
@@ -173,15 +181,30 @@ export default function QuestionDetailsPage() {
               </div>
 
               <div className="summary-metric-item">
-                <span className="summary-metric-label">Attempted</span>
+                <span className="summary-metric-label">Earned Marks</span>
                 <span className="summary-metric-value">
-                  {attemptedCount} / {TOTAL_QUESTIONS}
+                  {result.earned_marks ?? Math.round((Number(result.score) || 0) * 1.6)} / 160
                 </span>
               </div>
 
               <div className="summary-metric-item">
-                <span className="summary-metric-label">Score</span>
-                <span className="summary-metric-value">{result.score}%</span>
+                <span className="summary-metric-label">Final Score</span>
+                <span className="summary-metric-value">
+                  {result.percentage ?? result.score}% ({result.performance_band || "MODERATE"})
+                </span>
+              </div>
+
+              <div className="summary-metric-item">
+                <span className="summary-metric-label">Breakdown</span>
+                <span className="summary-metric-value">
+                  ✓{result.correct ?? attemptedCount} | ✗{result.incorrect ?? 0} | ↷{result.skipped ?? 0} | ○{result.not_attempted ?? (TOTAL_QUESTIONS - attemptedCount)}
+                </span>
+              </div>
+              <div className="summary-metric-item">
+                <span className="summary-metric-label">Avg Response Time</span>
+                <span className="summary-metric-value" style={{ color: "#38bdf8" }}>
+                  {result?.timingAnalysis?.avg_time_per_question ? `${result.timingAnalysis.avg_time_per_question} seconds` : "N/A"}
+                </span>
               </div>
 
               <div className="summary-metric-item">
@@ -219,7 +242,14 @@ export default function QuestionDetailsPage() {
                     className={`filter-tab-btn ${statusFilter === "attempted" ? "active" : ""}`}
                     onClick={() => setStatusFilter("attempted")}
                   >
-                    Attempted
+                    Answered
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-tab-btn ${statusFilter === "skipped" ? "active" : ""}`}
+                    onClick={() => setStatusFilter("skipped")}
+                  >
+                    Skipped
                   </button>
                   <button
                     type="button"
@@ -235,7 +265,7 @@ export default function QuestionDetailsPage() {
                 <div className="filter-group">
                   <span className="filter-label">AREA:</span>
                   <select
-                    className="area-filter-select"
+                    className="filter-select"
                     value={areaFilter}
                     onChange={(e) => setAreaFilter(e.target.value)}
                   >
@@ -264,7 +294,9 @@ export default function QuestionDetailsPage() {
                   return (
                     <div
                       key={q.qNum}
-                      className={`q-details-card ${q.isAttempted ? "attempted" : "unattempted"}`}
+                      className={`q-details-card ${
+                        q.isSkipped ? "skipped" : q.isAttempted ? "attempted" : "unattempted"
+                      }`}
                     >
                       <div className="q-card-header">
                         <div className="q-card-header-left">
@@ -272,16 +304,21 @@ export default function QuestionDetailsPage() {
                           <span className="q-card-area-badge">{q.area}</span>
                         </div>
 
-                        <div className="q-card-header-right">
-                          {q.isAttempted && q.score != null && (
-                            <span className="q-score-badge">{q.score} / 10</span>
-                          )}
+                        <div className="q-card-header-right" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span className="q-time-badge" style={{ fontSize: "12px", color: "#38bdf8", background: "rgba(56, 189, 248, 0.08)", padding: "3px 8px", borderRadius: "6px", border: "1px solid rgba(56, 189, 248, 0.2)" }}>
+                            ⏱ {q.timeSpentSeconds > 0 ? `${q.timeSpentSeconds}s` : "0s"}
+                          </span>
+                          <span className="q-score-badge">{q.score} / 10 Marks</span>
                           <span
                             className={`q-status-badge ${
-                              q.isAttempted ? "attempted" : "unattempted"
+                              q.isSkipped ? "skipped" : q.isAttempted ? "attempted" : "unattempted"
                             }`}
                           >
-                            {q.isAttempted ? "✓ Attempted" : "○ Not Attempted"}
+                            {q.isSkipped
+                              ? "↷ Skipped"
+                              : q.isAttempted
+                              ? "✓ Answered"
+                              : "○ Not Attempted"}
                           </span>
                         </div>
                       </div>

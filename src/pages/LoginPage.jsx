@@ -68,12 +68,51 @@ export default function LoginPage() {
           {error && <div className="form-error-banner">{error}</div>}
 
           <div className="form-group">
-            <label htmlFor="email">EMAIL</label>
+            <label htmlFor="candidate-preset">QUICK CANDIDATE SELECT</label>
+            <div className="preset-candidate-buttons" style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+              <button
+                type="button"
+                className="secondary-action-btn"
+                style={{ fontSize: "12px", padding: "6px 10px" }}
+                onClick={() => {
+                  setEmail("Sarah Johnson");
+                  setPassword("demo123");
+                }}
+              >
+                👤 Sarah Johnson (CAND-001)
+              </button>
+              <button
+                type="button"
+                className="secondary-action-btn"
+                style={{ fontSize: "12px", padding: "6px 10px" }}
+                onClick={() => {
+                  setEmail("Alex Turner");
+                  setPassword("demo123");
+                }}
+              >
+                👤 Alex Turner (CAND-002)
+              </button>
+              <button
+                type="button"
+                className="secondary-action-btn"
+                style={{ fontSize: "12px", padding: "6px 10px" }}
+                onClick={() => {
+                  setEmail("New Candidate");
+                  setPassword("demo123");
+                }}
+              >
+                ✨ New Candidate (0 Progress)
+              </button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">EMAIL OR CANDIDATE NAME</label>
             <input
               id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="Enter your email"
+              type="text"
+              autoComplete="username"
+              placeholder="Enter candidate name (e.g. Sarah Johnson) or email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />

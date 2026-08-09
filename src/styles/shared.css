@@ -178,3 +178,118 @@
     font-size: 14px;
   }
 }
+/* Skip Modal & Buttons */
+.skip-question-btn {
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
+.skip-question-btn:hover:not(:disabled) {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.skip-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 3, 8, 0.82);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.skip-modal-card {
+  max-width: 480px;
+  margin: 0;
+  text-align: center;
+  border-color: rgba(245, 158, 11, 0.3);
+  animation: skipModalPop 0.25s ease-out;
+}
+
+@keyframes skipModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.skip-modal-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.skip-modal-desc {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}
+
+.skip-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.skip-confirm-btn {
+  background: #f59e0b;
+  border-color: #d97706;
+
+}
+
+.skip-confirm-btn:hover {
+  background: #d97706;
+}
+
+/* Exit Test Styles */
+.exit-test-btn {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+.exit-test-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.exit-modal-card {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  text-align: left !important;
+}
+
+.exit-modal-card .skip-modal-title {
+  color: #fca5a5;
+}
+
+.exit-modal-bullets {
+  margin: 12px 0 24px;
+  padding-left: 20px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.7;
+}
+
+.exit-confirm-btn {
+  background: #ef4444 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.exit-confirm-btn:hover {
+  background: #dc2626 !important;
+}
+
+.sidebar-slot.skipped {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}

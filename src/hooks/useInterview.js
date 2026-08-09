@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import {
   completeInterview,
   getInterview,
+  skipQuestion,
   submitAnswer,
+  terminateInterview,
 } from "../services/interviewService";
 
 export function useInterview(interviewId) {
@@ -33,7 +35,7 @@ export function useInterview(interviewId) {
       setInterview(data);
       setCurrentQuestionIndex(data.currentQuestionIndex ?? 0);
       setSubmittedAnswers(data.submittedAnswers ?? {});
-      setIsComplete(data.status === "completed");
+      setIsComplete(data.status === "completed" || data.status === "terminated");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -52,7 +54,7 @@ export function useInterview(interviewId) {
           setInterview(data);
           setCurrentQuestionIndex(data.currentQuestionIndex ?? 0);
           setSubmittedAnswers(data.submittedAnswers ?? {});
-          setIsComplete(data.status === "completed");
+          setIsComplete(data.status === "completed" || data.status === "terminated");
           setLoading(false);
         }
       } catch (err) {
@@ -113,7 +115,7 @@ export function useInterview(interviewId) {
         setSubmittedAnswers(updated.submittedAnswers ?? {});
         setCurrentQuestionIndex(updated.currentQuestionIndex ?? 0);
 
-        if (updated.status === "completed") {
+        if (updated.status === "completed" || updated.status === "terminated") {
           setIsComplete(true);
         }
       }
@@ -145,6 +147,55 @@ export function useInterview(interviewId) {
     }
   }, [interviewId]);
 
+  const handleExitInterview = useCallback(async (reason = "VOLUNTARY_EXIT") => {
+    if (!interviewId) {
+      return;
+    }
+
+    setCompleting(true);
+    setError(null);
+
+    try {
+      const data = await terminateInterview(interviewId, reason);
+      if (data) {
+        setInterview(data);
+      }
+      setIsComplete(true);
+      return data;
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCompleting(false);
+    }
+  }, [interviewId]);
+
+  const handleSkipQuestion = useCallback(async () => {
+    if (!currentQuestion || !interviewId) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const updated = await skipQuestion(interviewId, currentQuestion.id);
+
+      if (updated) {
+        setInterview(updated);
+        setSubmittedAnswers(updated.submittedAnswers ?? {});
+        setCurrentQuestionIndex(updated.currentQuestionIndex ?? 0);
+
+        if (updated.status === "completed" || updated.status === "terminated") {
+          setIsComplete(true);
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [currentQuestion, interviewId]);
+
   return {
     interview,
     currentQuestion,
@@ -162,7 +213,9 @@ export function useInterview(interviewId) {
     goToNext,
     goToQuestion,
     handleSubmitAnswer,
+    handleSkipQuestion,
     handleCompleteInterview,
+    handleExitInterview,
     reload: loadInterview,
     setError,
   };

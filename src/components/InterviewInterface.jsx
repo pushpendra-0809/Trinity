@@ -14,7 +14,6 @@ export default function InterviewInterface({ interviewId }) {
     interview,
     currentQuestion,
     currentQuestionIndex,
-    totalQuestions,
     answer,
     setAnswer,
     submittedAnswers,
@@ -27,11 +26,16 @@ export default function InterviewInterface({ interviewId }) {
     goToNext,
     goToQuestion,
     handleSubmitAnswer,
+    handleSkipQuestion,
     handleCompleteInterview,
+    handleExitInterview,
     reload,
   } = useInterview(interviewId);
 
-  const [lockdownViolationReason, setLockdownViolationReason] = useState(null);
+  const [isSkipModalOpen, setIsSkipModalOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const [lockdownViolationReason] = useState(null);
 
   // Auto navigate on normal complete (when not terminated due to violation)
   useEffect(() => {
@@ -40,7 +44,8 @@ export default function InterviewInterface({ interviewId }) {
     }
   }, [isComplete, lockdownViolationReason, interviewId, navigate]);
 
-  // Lockdown active monitoring effect
+  /* LOCKDOWN BROWSER TEMPORARILY DISABLED FOR TESTING */
+  /*
   useEffect(() => {
     if (loading || !interview || isComplete || lockdownViolationReason) {
       return;
@@ -130,8 +135,9 @@ export default function InterviewInterface({ interviewId }) {
     handleCompleteInterview,
     interviewId,
     submittedAnswers,
-    totalQuestions,
+    TOTAL_QUESTIONS,
   ]);
+  */
 
   const attemptedCount = Object.keys(submittedAnswers).length;
   const currentQuestionNumber = currentQuestionIndex + 1;
@@ -215,11 +221,12 @@ export default function InterviewInterface({ interviewId }) {
       <header className="interview-header">
         <button
           type="button"
-          className="interview-back"
-          onClick={() => navigate("/dashboard")}
-          disabled={Boolean(lockdownViolationReason)}
+          className="interview-back exit-test-btn"
+          onClick={() => setIsExitModalOpen(true)}
+          disabled={Boolean(lockdownViolationReason) || exiting}
+          title="Exit interview and evaluate answered questions"
         >
-          ← Exit
+          ✕ Exit Test
         </button>
 
         <div className="interview-logo">TRINITY</div>
@@ -267,7 +274,9 @@ export default function InterviewInterface({ interviewId }) {
                 const qNum = i + 1;
                 const isCurrent = i === currentQuestionIndex;
                 const qId = interview?.questions[i]?.id ?? `q${qNum}`;
-                const isAttempted = submittedAnswers[qId] !== undefined;
+                const turnItem = interview?.history?.[i];
+                const isSkipped = turnItem?.status === "skipped";
+                const isAttempted = (submittedAnswers[qId] !== undefined || Boolean(turnItem)) && !isSkipped;
 
                 let status = "unattempted";
                 let icon = "○";
@@ -277,10 +286,14 @@ export default function InterviewInterface({ interviewId }) {
                   status = "current";
                   icon = "●";
                   statusLabel = "Current";
+                } else if (isSkipped) {
+                  status = "skipped";
+                  icon = "↷";
+                  statusLabel = "Skipped";
                 } else if (isAttempted) {
                   status = "attempted";
                   icon = "✓";
-                  statusLabel = "Attempted";
+                  statusLabel = "Answered";
                 }
 
                 return (
@@ -338,7 +351,7 @@ export default function InterviewInterface({ interviewId }) {
                       value={answer}
                       onChange={(event) => setAnswer(event.target.value)}
                       rows={8}
-                      disabled={Boolean(lockdownViolationReason) || submitting || completing}
+                      disabled={Boolean(lockdownViolationReason) || submitting || completing || exiting}
                     />
                   </div>
 
@@ -351,10 +364,31 @@ export default function InterviewInterface({ interviewId }) {
                         currentQuestionIndex === 0 ||
                         submitting ||
                         completing ||
+                        exiting ||
                         Boolean(lockdownViolationReason)
                       }
                     >
                       Previous
+                    </button>
+
+                    <button
+                      type="button"
+                      className="secondary-action-btn skip-question-btn"
+                      onClick={() => setIsSkipModalOpen(true)}
+                      disabled={submitting || completing || exiting || Boolean(lockdownViolationReason)}
+                      title="Skip this question (0 marks, consumes 1 question slot)"
+                    >
+                      ↷ Skip Question
+                    </button>
+
+                    <button
+                      type="button"
+                      className="secondary-action-btn exit-test-btn"
+                      onClick={() => setIsExitModalOpen(true)}
+                      disabled={submitting || completing || exiting || Boolean(lockdownViolationReason)}
+                      title="Voluntarily exit and terminate test early"
+                    >
+                      ✕ Exit Test
                     </button>
 
                     {!isLastQuestion ? (
@@ -365,6 +399,7 @@ export default function InterviewInterface({ interviewId }) {
                         disabled={
                           submitting ||
                           completing ||
+                          exiting ||
                           !answer.trim() ||
                           Boolean(lockdownViolationReason)
                         }
@@ -380,6 +415,7 @@ export default function InterviewInterface({ interviewId }) {
                           disabled={
                             submitting ||
                             completing ||
+                            exiting ||
                             !answer.trim() ||
                             Boolean(lockdownViolationReason)
                           }
@@ -391,7 +427,7 @@ export default function InterviewInterface({ interviewId }) {
                           type="button"
                           className="primary-action-btn"
                           onClick={onComplete}
-                          disabled={completing || submitting || Boolean(lockdownViolationReason)}
+                          disabled={completing || submitting || exiting || Boolean(lockdownViolationReason)}
                         >
                           {completing ? "Completing..." : "Complete Interview"}
                         </button>
@@ -403,7 +439,7 @@ export default function InterviewInterface({ interviewId }) {
                         type="button"
                         className="secondary-action-btn"
                         onClick={goToNext}
-                        disabled={submitting || completing || Boolean(lockdownViolationReason)}
+                        disabled={submitting || completing || exiting || Boolean(lockdownViolationReason)}
                       >
                         Next
                       </button>
@@ -414,6 +450,82 @@ export default function InterviewInterface({ interviewId }) {
             </div>
           </div>
         </div>
+
+        {/* Skip Confirmation Modal */}
+        {isSkipModalOpen && (
+          <div className="skip-modal-overlay">
+            <div className="skip-modal-card content-card">
+              <h3 className="skip-modal-title">Skip this question?</h3>
+              <p className="skip-modal-desc">
+                Skipped questions receive 0 marks and cannot be answered later.
+              </p>
+              <div className="skip-modal-actions">
+                <button
+                  type="button"
+                  className="secondary-action-btn"
+                  onClick={() => setIsSkipModalOpen(false)}
+                >
+                  Continue Answering
+                </button>
+                <button
+                  type="button"
+                  className="primary-action-btn skip-confirm-btn"
+                  onClick={async () => {
+                    setIsSkipModalOpen(false);
+                    await handleSkipQuestion();
+                  }}
+                >
+                  ↷ Skip Question
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Voluntary Exit Confirmation Modal */}
+        {isExitModalOpen && (
+          <div className="skip-modal-overlay">
+            <div className="skip-modal-card content-card exit-modal-card">
+              <h3 className="skip-modal-title">Exit Interview?</h3>
+              <p className="skip-modal-desc">
+                You have not completed all 16 questions.
+              </p>
+              <ul className="exit-modal-bullets">
+                <li>Your current interview will end immediately.</li>
+                <li>Unanswered questions will receive 0 marks.</li>
+                <li>Your score will be calculated from the full 160-mark test.</li>
+                <li>You will not be able to continue or resume this interview.</li>
+              </ul>
+              <div className="skip-modal-actions">
+                <button
+                  type="button"
+                  className="secondary-action-btn"
+                  onClick={() => setIsExitModalOpen(false)}
+                  disabled={exiting}
+                >
+                  Continue Test
+                </button>
+                <button
+                  type="button"
+                  className="primary-action-btn exit-confirm-btn"
+                  disabled={exiting}
+                  onClick={async () => {
+                    setExiting(true);
+                    try {
+                      await handleExitInterview("VOLUNTARY_EXIT");
+                      setIsExitModalOpen(false);
+                      navigate(`/interview/${interviewId}/result`, { replace: true });
+                    } catch {
+                      setExiting(false);
+                    }
+                  }}
+                >
+                  {exiting ? "Submitting your interview..." : "Exit & Submit Test"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

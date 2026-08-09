@@ -53,25 +53,273 @@
   gap: 16px;
 }
 
-.app-shell-user {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 13px;
-}
-
-.app-shell-logout {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.85);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 13px;
+.app-shell-nav-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  padding: 0;
+  transition: color 0.25s ease;
 }
 
-.app-shell-logout:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.25);
+.app-shell-nav-btn:hover {
+  color: #ffffff;
+}
+
+.app-shell-user-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a9c7ff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.app-shell-user-btn:hover {
+  background: rgba(100, 160, 255, 0.12);
+  border-color: rgba(100, 160, 255, 0.35);
+  color: #ffffff;
+}
+
+/* Candidate Profile Modal Popup */
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 3, 8, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.profile-modal-card {
+  max-width: 620px;
+  max-height: 85vh;
+  margin: 0;
+  padding: 28px;
+  overflow-y: auto;
+  border-color: rgba(100, 160, 255, 0.3);
+  animation: profileModalPop 0.25s ease-out;
+}
+
+@keyframes profileModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.profile-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 16px;
+}
+
+.profile-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.profile-status-badge.registered {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.profile-status-badge.unregistered {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.profile-modal-title-box h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.profile-cohort-sub {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.profile-modal-close-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.profile-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.profile-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-info-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-info-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.profile-signals-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.signal-box {
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(100, 160, 255, 0.04);
+  border: 1px solid rgba(100, 160, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.signal-box-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.signal-box-lbl {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 4px;
+}
+
+.profile-missions-section h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.profile-missions-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 6px;
+}
+
+.mission-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+}
+
+.mission-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mission-status-dot.passed {
+  color: #6ee7b7;
+}
+
+.mission-status-dot.skipped {
+  color: #fcd34d;
+}
+
+.mission-status-dot.failed {
+  color: #fca5a5;
+}
+
+.mission-title-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mission-attempts {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.profile-unregistered-note {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #a5f3fc;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.profile-modal-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 16px;
 }
 
 .app-shell-main {

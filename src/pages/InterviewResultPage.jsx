@@ -23,9 +23,114 @@ function getScoreTier(score) {
   return { label: "Weak Performance", tierClass: "weak", color: "#ef4444" };
 }
 
-function ScoreHero({ score, isTerminated, attemptedCount, totalQuestions = 16 }) {
-  const numScore = Math.round(Number(score) || 0);
+function QuestionTimeAnalysisSection({ timingAnalysis, questionFeedback }) {
+  const timings = timingAnalysis?.question_timings || questionFeedback || [];
+  const avgTime = timingAnalysis?.avg_time_per_question ?? 0;
+  const fastest = timingAnalysis?.fastest_question;
+  const longest = timingAnalysis?.longest_question;
+  const insights = timingAnalysis?.timing_insights || [];
+
+  const maxTime = Math.max(...timings.map((t) => t.time_spent_seconds || 0), 60);
+
+  const getStatusBadge = (t) => {
+    const status = t.status || t.correctness || "not_reached";
+    if (status === "correct" || status === "partial") {
+      return <span className="time-bar-badge status-correct">✓ Correct</span>;
+    }
+    if (status === "incorrect") {
+      return <span className="time-bar-badge status-incorrect">✗ Incorrect</span>;
+    }
+    if (status === "skipped") {
+      return <span className="time-bar-badge status-skipped">↷ Skipped</span>;
+    }
+    if (status === "not_attempted") {
+      return <span className="time-bar-badge status-not-attempted">○ Not Attempted</span>;
+    }
+    return <span className="time-bar-badge status-not-reached">○ Not Reached</span>;
+  };
+
+  return (
+    <div className="result-section content-card timing-analysis-card">
+      <h3 className="section-card-title">⏱ Question Time Analysis</h3>
+
+      {/* Metric Stat Boxes */}
+      <div className="timing-stats-grid">
+        <div className="timing-stat-box">
+          <span className="timing-stat-val">{avgTime > 0 ? `${avgTime}s` : "N/A"}</span>
+          <span className="timing-stat-lbl">Average Response Time</span>
+        </div>
+        <div className="timing-stat-box">
+          <span className="timing-stat-val">
+            {fastest ? `Q${fastest.question_number} · ${fastest.time_spent_seconds}s` : "N/A"}
+          </span>
+          <span className="timing-stat-lbl">Fastest Response</span>
+        </div>
+        <div className="timing-stat-box">
+          <span className="timing-stat-val">
+            {longest ? `Q${longest.question_number} · ${longest.time_spent_seconds}s` : "N/A"}
+          </span>
+          <span className="timing-stat-lbl">Longest Response</span>
+        </div>
+      </div>
+
+      {/* Horizontal Bar Chart Visualization (Section 19) */}
+      <div className="timing-bars-container">
+        <h4 className="timing-bars-subtitle">Per-Question Thinking Duration Bar Chart</h4>
+        <div className="timing-bars-list">
+          {timings.map((t, index) => {
+            const qNum = t.question_number || index + 1;
+            const spentSecs = t.time_spent_seconds || 0;
+            const pct = maxTime > 0 ? Math.max(spentSecs > 0 ? 8 : 0, Math.min(100, (spentSecs / maxTime) * 100)) : 0;
+            const status = t.status || t.correctness || "not_reached";
+
+            let barColor = "#64748b";
+            if (status === "correct" || status === "partial") barColor = "#10b981";
+            else if (status === "incorrect") barColor = "#ef4444";
+            else if (status === "skipped") barColor = "#f59e0b";
+
+            return (
+              <div key={qNum} className="timing-bar-row">
+                <span className="timing-row-label">Q{qNum}</span>
+                <div className="timing-row-track">
+                  <div
+                    className="timing-row-fill"
+                    style={{ width: `${pct}%`, backgroundColor: barColor }}
+                  />
+                </div>
+                <span className="timing-row-time">{spentSecs > 0 ? `${spentSecs}s` : "0s"}</span>
+                <div className="timing-row-badge">{getStatusBadge(t)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Performance Insights (Section 21, 22) */}
+      {insights.length > 0 && (
+        <div className="timing-insights-box">
+          <h4 className="timing-insights-title">💡 Cognitive & Timing Insights</h4>
+          <ul className="timing-insights-list">
+            {insights.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreHero({ result, isTerminated, totalQuestions = 16 }) {
+  const earnedMarks = result.earned_marks ?? Math.round((Number(result.score) || 0) * 1.6);
+  const maxMarks = result.max_marks || 160;
+  const numScore = Math.round(Number(result.score) || 0);
   const tier = getScoreTier(numScore);
+  const performanceBand = result.performance_band || tier.label.toUpperCase();
+
+  const correctCount = result.correct ?? 0;
+  const incorrectCount = result.incorrect ?? 0;
+  const skippedCount = result.skipped ?? 0;
+  const notAttemptedCount = result.not_attempted ?? Math.max(0, totalQuestions - (correctCount + incorrectCount + skippedCount));
 
   const radius = 64;
   const strokeWidth = 10;
@@ -35,7 +140,7 @@ function ScoreHero({ score, isTerminated, attemptedCount, totalQuestions = 16 })
   return (
     <div className={`score-hero-card ${tier.tierClass}`}>
       <div className="score-hero-badge">
-        TECHNICAL INTERVIEW {isTerminated ? "TERMINATED" : "COMPLETED"}
+        TECHNICAL INTERVIEW {result.termination_reason === "VOLUNTARY_EXIT" ? "VOLUNTARILY EXITED" : isTerminated ? "TERMINATED" : "COMPLETED"}
       </div>
 
       <div className="score-ring-container">
@@ -65,13 +170,26 @@ function ScoreHero({ score, isTerminated, attemptedCount, totalQuestions = 16 })
       </div>
 
       <div className="score-hero-status" style={{ color: tier.color }}>
-        ● {tier.label}
+        ● {performanceBand} ({earnedMarks} / {maxMarks} Marks)
       </div>
 
-      <div className="score-hero-meta">
-        <span>
-          Questions Attempted: <strong>{attemptedCount} / {totalQuestions}</strong>
-        </span>
+      <div className="score-breakdown-counters">
+        <div className="counter-item correct" title="Answered correctly or partially">
+          <span className="counter-val">✓ {correctCount}</span>
+          <span className="counter-lbl">Correct</span>
+        </div>
+        <div className="counter-item incorrect" title="Answered incorrectly">
+          <span className="counter-val">✗ {incorrectCount}</span>
+          <span className="counter-lbl">Incorrect</span>
+        </div>
+        <div className="counter-item skipped" title="Question skipped by candidate (0 marks)">
+          <span className="counter-val">↷ {skippedCount}</span>
+          <span className="counter-lbl">Skipped</span>
+        </div>
+        <div className="counter-item unattempted" title="Not reached due to termination">
+          <span className="counter-val">○ {notAttemptedCount}</span>
+          <span className="counter-lbl">Not Attempted</span>
+        </div>
       </div>
     </div>
   );
@@ -197,11 +315,38 @@ export default function InterviewResultPage() {
 
         {!loading && !error && result && (
           <div className="content-card result-card">
-            {terminationInfo?.isTerminated && (
+            {result.termination_reason === "VOLUNTARY_EXIT" ? (
+              <div className="termination-banner voluntary-exit-banner">
+                <div className="termination-badge warning">⚠ TEST TERMINATED BY CANDIDATE</div>
+                <h2 className="termination-title">
+                  You voluntarily exited the interview before completing all 16 questions.
+                </h2>
+                <p className="termination-explanation">
+                  Your final score was calculated using the full 160-mark denominator. Unanswered questions received 0 marks and are marked as Not Attempted.
+                </p>
+                <div className="termination-meta">
+                  <span className="termination-meta-item">
+                    <strong>Status:</strong> Voluntarily Exited
+                  </span>
+                  <span className="termination-meta-item">
+                    <strong>Termination Reason:</strong> Voluntary Exit
+                  </span>
+                  <span className="termination-meta-item">
+                    <strong>Answered:</strong> {result.answered ?? attemptedCount} / {totalQuestions}
+                  </span>
+                  <span className="termination-meta-item">
+                    <strong>Skipped:</strong> {result.skipped ?? 0} / {totalQuestions}
+                  </span>
+                  <span className="termination-meta-item">
+                    <strong>Not Attempted:</strong> {result.not_attempted ?? 0} / {totalQuestions}
+                  </span>
+                </div>
+              </div>
+            ) : (terminationInfo?.isTerminated || result.status === "terminated") && (
               <div className="termination-banner">
                 <div className="termination-badge">🚫 TEST TERMINATED</div>
                 <h2 className="termination-title">
-                  {terminationInfo.terminationMessage}
+                  {terminationInfo?.terminationMessage || "Your assessment session was closed due to a lockdown policy event."}
                 </h2>
                 <p className="termination-explanation">
                   Browser Lockdown was active. Leaving the test page or exiting fullscreen is not permitted during the assessment.
@@ -209,9 +354,9 @@ export default function InterviewResultPage() {
                 <div className="termination-meta">
                   <span className="termination-meta-item">
                     <strong>Termination Reason:</strong>{" "}
-                    {terminationInfo.terminationReason === "FULLSCREEN_EXIT"
+                    {result.termination_reason || (terminationInfo?.terminationReason === "FULLSCREEN_EXIT"
                       ? "Fullscreen Exit"
-                      : "Tab Switch Detected"}
+                      : "Tab Switch Detected")}
                   </span>
                   <span className="termination-meta-item">
                     <strong>Questions Attempted:</strong>{" "}
@@ -230,7 +375,7 @@ export default function InterviewResultPage() {
 
             {/* Main Score Hero (Circular Gauge & Tier Badge) */}
             <ScoreHero
-              score={result.score}
+              result={result}
               isTerminated={Boolean(terminationInfo?.isTerminated)}
               attemptedCount={attemptedCount}
               totalQuestions={totalQuestions}
@@ -273,6 +418,12 @@ export default function InterviewResultPage() {
                 </div>
               )}
             </ResultSection>
+
+            {/* Question Time Analysis Section (Sections 18-22) */}
+            <QuestionTimeAnalysisSection
+              timingAnalysis={result.timingAnalysis}
+              questionFeedback={result.questionFeedback}
+            />
 
             {/* Performance Summary */}
             <ResultSection

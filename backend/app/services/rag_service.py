@@ -14,6 +14,12 @@ def _tokens(text: str) -> List[str]:
     return [t.lower() for t in TOKEN_RE.findall(text or "") if len(t) > 2]
 
 
+def normalize_candidate_name(name: Optional[str]) -> str:
+    if not name:
+        return ""
+    return re.sub(r"\s+", " ", name.strip())
+
+
 class KnowledgeEngine:
     """Curriculum-grounded retrieval with deterministic local fallback."""
 
@@ -96,16 +102,56 @@ class KnowledgeEngine:
         return None
 
     def candidate_from_frontend_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Build a canonical candidate dict from frontend config.
+
+        IMPORTANT (Section 21 — identity invariant):
+        - If config contains a known candidate_id, load that candidate's profile.
+        - If config contains a candidateName that resolves to a known candidate, use that.
+        - Otherwise (new candidate) return an empty profile. Do NOT fall back to
+          candidates_data[0] which would silently assign Sarah Johnson's profile to
+          any new candidate (the original bug).
+        """
+        import logging
+        log = logging.getLogger("trinity.identity")
+
         name = config.get("candidateName") or config.get("name") or "Candidate"
         role = config.get("jobRole") or config.get("role") or "AI Engineer"
         years = config.get("experience") or config.get("yearsExperience") or ""
-        closest = self.get_candidate_by_id(config.get("candidate_id", "")) if config.get("candidate_id") else None
-        if not closest and self.candidates_data:
-            closest = self.candidates_data[0]
-        candidate = json.loads(json.dumps(closest or {"missions": [], "signals": {}}))
+
+        # ── Step 1: Try to match by candidate_id if explicitly provided ────────
+        explicit_cid = (config.get("candidate_id") or "").strip()
+        closest = self.get_candidate_by_id(explicit_cid) if explicit_cid else None
+
+        # ── Step 2: If no explicit id, try resolving by name ──────────────────
+        if not closest and name and name not in ("Candidate", ""):
+            resolved = self.resolve_candidate_identity(name)
+            if resolved.get("candidate_type") == "existing":
+                closest = resolved.get("raw_record")
+
+        # ── Step 3: Build canonical candidate dict ────────────────────────
+        if closest:
+            # Existing candidate — deep-copy to avoid mutating candidate.json (Section 19)
+            candidate = json.loads(json.dumps(closest))
+            actual_cid = candidate.get("member", {}).get("id", explicit_cid or "CAND-UNKNOWN")
+            log.info(
+                "[candidate_from_frontend_config] EXISTING matched: input_name=%r "
+                "candidate_id=%r candidate_type=existing",
+                name, actual_cid,
+            )
+        else:
+            # NEW candidate — empty profile (DO NOT use candidates_data[0])
+            candidate = {"missions": [], "signals": {}}
+            log.info(
+                "[candidate_from_frontend_config] NEW candidate: input_name=%r "
+                "no candidate.json match",
+                name,
+            )
+
+        # Override display fields from the frontend input
         candidate["member"] = {
             **candidate.get("member", {}),
-            "id": candidate.get("member", {}).get("id", "CAND-FRONTEND"),
+            "id": candidate.get("member", {}).get("id") or explicit_cid or f"cand_{name.lower().replace(' ', '_')}",
             "name": name,
             "jobRole": role,
             "yearsExperience": years,
@@ -238,13 +284,324 @@ class KnowledgeEngine:
             info = self.days_map.get(day)
             if info:
                 recs.append(f"Day {day}: {info.get('title', 'Review topic')}")
-        if not recs:
-            recs = [
-                "Day 22: Multi-Agent Orchestration & Workflow Routing",
-                "Day 23: Model Context Protocol (MCP) Integration",
-                "Day 28: Docker & Kubernetes Production Deployment",
-            ]
-        return recs[:5]
+        return recs
+
+    def resolve_candidate_identity(self, name_or_id: Optional[str]) -> Dict[str, Any]:
+        """Resolves input against candidate.json. Returns authoritative session identity."""
+        import uuid
+        raw_name = (name_or_id or "").strip()
+        normalized = normalize_candidate_name(raw_name)
+
+        if not normalized:
+            cand_id = f"session_cand_{uuid.uuid4().hex[:8]}"
+            return {
+                "candidate_id": cand_id,
+                "candidate_type": "new",
+                "display_name": "Candidate",
+                "profile_source": "user_entered",
+                "job_role": "AI Engineering Scholar",
+                "years_experience": 0,
+            }
+
+        # Section 24 identity invariant:
+        # If the input is already a generated new-candidate id (session_cand_* prefix),
+        # return it as-is. Do NOT generate a new id — that breaks the login → interview
+        # identity chain for new candidates.
+        if normalized.startswith("session_cand_"):
+            return {
+                "candidate_id": normalized,
+                "candidate_type": "new",
+                "display_name": "Candidate",
+                "profile_source": "user_entered",
+                "job_role": "AI Engineering Scholar",
+                "years_experience": 0,
+            }
+
+        norm_lower = normalized.lower()
+
+        # 1. Match by exact candidate ID (e.g. CAND-001)
+        for c in self.candidates_data:
+            member = c.get("member", {})
+            if member.get("id", "").strip().lower() == norm_lower:
+                return {
+                    "candidate_id": member.get("id"),
+                    "candidate_type": "existing",
+                    "display_name": member.get("name"),
+                    "profile_source": "candidate.json",
+                    "job_role": member.get("jobRole", "AI Engineer"),
+                    "years_experience": member.get("yearsExperience", 3),
+                    "raw_record": c,
+                }
+
+        # 2. Check active sessions in session_manager for matching candidate_id
+        try:
+            from app.services.memory import session_manager
+            for s in session_manager.list_sessions():
+                cid = (s.candidate_id or s.candidate.get("candidate_id") or "").strip().lower()
+                if cid and cid == norm_lower:
+                    return {
+                        "candidate_id": s.candidate_id,
+                        "candidate_type": s.candidate_type,
+                        "display_name": s.display_name,
+                        "profile_source": s.candidate.get("profile_source", "user_entered"),
+                        "job_role": s.candidate.get("job_role") or "AI Engineer",
+                        "years_experience": 0,
+                    }
+        except Exception:
+            pass
+
+        # 3. Match by exact full name (e.g. Sarah Johnson, Rahul Sharma)
+        for c in self.candidates_data:
+            member = c.get("member", {})
+            cand_name = normalize_candidate_name(member.get("name"))
+            if cand_name.lower() == norm_lower:
+                return {
+                    "candidate_id": member.get("id"),
+                    "candidate_type": "existing",
+                    "display_name": member.get("name"),
+                    "profile_source": "candidate.json",
+                    "job_role": member.get("jobRole", "AI Engineer"),
+                    "years_experience": member.get("yearsExperience", 3),
+                    "raw_record": c,
+                }
+
+        # 3. Email prefix / name parts match
+        email_prefix = norm_lower.split("@")[0].replace(".", " ").replace("_", " ").replace("-", " ").strip()
+        if len(email_prefix) >= 3:
+            for c in self.candidates_data:
+                member = c.get("member", {})
+                cand_name = normalize_candidate_name(member.get("name")).lower()
+                if cand_name == email_prefix or cand_name in norm_lower:
+                    return {
+                        "candidate_id": member.get("id"),
+                        "candidate_type": "existing",
+                        "display_name": member.get("name"),
+                        "profile_source": "candidate.json",
+                        "job_role": member.get("jobRole", "AI Engineer"),
+                        "years_experience": member.get("yearsExperience", 3),
+                        "raw_record": c,
+                    }
+
+        # 4. Check active sessions in session_manager
+        try:
+            from app.services.memory import session_manager
+            for s in session_manager.list_sessions():
+                cid = (s.candidate_id or s.candidate.get("candidate_id") or "").strip().lower()
+                if cid and cid == norm_lower:
+                    return {
+                        "candidate_id": s.candidate_id,
+                        "candidate_type": s.candidate_type,
+                        "display_name": s.display_name,
+                        "profile_source": s.candidate.get("profile_source", "user_entered"),
+                        "job_role": s.candidate.get("job_role") or "AI Engineer",
+                        "years_experience": 0,
+                    }
+        except Exception:
+            pass
+
+        # 5. New candidate
+        cand_id = f"session_cand_{uuid.uuid4().hex[:8]}"
+        return {
+            "candidate_id": cand_id,
+            "candidate_type": "new",
+            "display_name": normalized,
+            "profile_source": "user_entered",
+            "job_role": "AI Engineering Scholar",
+            "years_experience": 0,
+        }
+
+    def find_candidate(self, query: Optional[str]) -> Optional[Dict[str, Any]]:
+        resolved = self.resolve_candidate_identity(query)
+        if resolved.get("candidate_type") == "existing":
+            return resolved.get("raw_record")
+        return None
+
+    def get_dashboard_data(self, candidate_id: Optional[str] = None) -> Dict[str, Any]:
+        """Maps candidate.json and session history to the normalized Candidate Dashboard Data Model."""
+        from app.services.memory import session_manager
+
+        resolved = self.resolve_candidate_identity(candidate_id)
+        candidate_record = resolved.get("raw_record")
+
+        if not candidate_record:
+            member = {
+                "name": resolved["display_name"],
+                "id": resolved["candidate_id"],
+                "jobRole": resolved["job_role"],
+                "yearsExperience": 0,
+            }
+            missions = []
+            signals = {"commitDays": 0, "missionsCompleted": 0, "missionsFirstTry": 0}
+        else:
+            member = candidate_record.get("member", {})
+            missions = candidate_record.get("missions", [])
+            signals = candidate_record.get("signals", {})
+
+        completed_days = sorted([int(m["day"]) for m in missions if m.get("passed") or m.get("attempts", 0) > 0])
+        skipped_days = sorted([int(m["day"]) for m in missions if m.get("skipped")])
+        total_days = 31
+        unique_completed_count = len(set(completed_days))
+        progress_pct = round((unique_completed_count / total_days) * 100, 1)
+
+        modules_list = [
+            {"name": "Environment & Setup", "range": (1, 3)},
+            {"name": "Data Foundations", "range": (4, 6)},
+            {"name": "Embeddings & Vector DB", "range": (7, 10)},
+            {"name": "LLM Core & Prompting", "range": (11, 15)},
+            {"name": "Chatbot Integration", "range": (16, 20)},
+            {"name": "Agentic AI & MCP", "range": (21, 24)},
+            {"name": "Security & Deployment", "range": (25, 28)},
+            {"name": "Production Readiness", "range": (29, 31)},
+        ]
+
+        modules_progress = []
+        for mod in modules_list:
+            start, end = mod["range"]
+            total_mod_days = end - start + 1
+            mod_completed = sum(1 for d in range(start, end + 1) if d in completed_days)
+            mod_pct = round((mod_completed / total_mod_days) * 100)
+            modules_progress.append({
+                "name": mod["name"],
+                "completed": mod_completed,
+                "total": total_mod_days,
+                "percentage": mod_pct,
+            })
+
+        strengths = []
+        focus_areas = []
+        skipped_topics = []
+
+        if signals.get("missionsFirstTry", 0) >= 15:
+            strengths.append("High First-Try Completion (15+ missions)")
+        if unique_completed_count > 0:
+            strengths.append(f"Solid Curriculum Momentum ({unique_completed_count} Days Completed)")
+        else:
+            strengths.append("Ready to begin baseline assessment")
+
+        if skipped_days:
+            focus_areas.append(f"{len(skipped_days)} Curriculum Topics Skipped (Needs Revision)")
+            skipped_topics = [f"Day {d}" for d in skipped_days]
+        else:
+            focus_areas.append("Production Scalability & System Architecture")
+
+        all_sessions = session_manager.list_sessions_for_candidate(resolved["candidate_id"])
+        test_history = []
+        import datetime
+
+        for idx, s in enumerate(all_sessions, start=1):
+            report = s.feedback or {}
+            history_turns = s.history
+            history_len = len(history_turns)
+            skipped_cnt = sum(1 for h in history_turns if h.get("status") == "skipped")
+            answered_cnt = sum(1 for h in history_turns if h.get("status") != "skipped")
+            correct_cnt = report.get("correct", sum(1 for h in history_turns if h.get("status") != "skipped" and h.get("evaluation", {}).get("score", 0) > 0))
+            incorrect_cnt = report.get("incorrect", sum(1 for h in history_turns if h.get("status") != "skipped" and h.get("evaluation", {}).get("score", 0) == 0))
+
+            dt_str = datetime.datetime.fromtimestamp(s.created_at).strftime("%d %b %Y")
+
+            test_history.append({
+                "test_id": s.session_id,
+                "test_number": idx,
+                "date": dt_str,
+                "role": s.candidate.get("member", {}).get("jobRole") or "AI Engineer",
+                "score": report.get("earned_marks", sum(h.get("evaluation", {}).get("score", 0) for h in history_turns)),
+                "max_score": 160,
+                "percentage": report.get("percentage", round((sum(h.get("evaluation", {}).get("score", 0) for h in history_turns) / 160) * 100, 1)),
+                "performance_band": report.get("performance_band", "MODERATE"),
+                "answered": answered_cnt,
+                "correct": correct_cnt,
+                "incorrect": incorrect_cnt,
+                "skipped": skipped_cnt,
+                "not_attempted": max(0, 16 - history_len),
+                "status": s.status,
+            })
+
+        rec_title = "Advanced RAG & Vector DB Interview"
+        rec_reason = f"Based on your {unique_completed_count} completed curriculum days and strong retrieval performance."
+        if unique_completed_count < 10:
+            rec_title = "Foundation AI Engineering Assessment"
+            rec_reason = "Start with a baseline assessment to evaluate core Python & Data Foundations."
+
+        return {
+            "candidate": {
+                "name": resolved["display_name"],
+                "id": resolved["candidate_id"],
+                "candidate_type": resolved["candidate_type"],
+                "jobRole": member.get("jobRole", "AI Engineer"),
+                "cohort": "ABTalks AI Cohort",
+                "experience": f"{member.get('yearsExperience', 0)} years",
+            },
+            "course_progress": {
+                "percentage": progress_pct,
+                "completed_days": unique_completed_count,
+                "total_days": total_days,
+                "current_day": min(31, unique_completed_count + 1),
+                "completed_day_list": completed_days,
+            },
+            "modules": modules_progress,
+            "learning_signals": {
+                "strengths": strengths,
+                "focus_areas": focus_areas,
+                "skipped_topics": skipped_topics,
+            },
+            "test_history": test_history,
+            "recommendation": {
+                "type": "adaptive_interview",
+                "title": rec_title,
+                "reason": rec_reason,
+            },
+        }
+
+    def get_candidate_profile(self, candidate_query: Optional[str] = None) -> Dict[str, Any]:
+        """Returns full candidate profile from candidates.json if registered or formatted unregistered fallback."""
+        candidate_record = self.find_candidate(candidate_query)
+
+
+        if candidate_record:
+            member = candidate_record.get("member", {})
+            missions = candidate_record.get("missions", [])
+            signals = candidate_record.get("signals", {})
+            return {
+                "is_registered": True,
+                "status_label": "REGISTERED CANDIDATE",
+                "member": {
+                    "id": member.get("id", "CAND-001"),
+                    "name": member.get("name", "Candidate"),
+                    "jobRole": member.get("jobRole", "AI Engineer"),
+                    "yearsExperience": member.get("yearsExperience", 3),
+                    "education": member.get("education", "BS Computer Science"),
+                    "status": member.get("status", "ACTIVE"),
+                    "cohort": "ABTalks AI Cohort",
+                },
+                "signals": {
+                    "commitDays": signals.get("commitDays", 0),
+                    "missionsCompleted": signals.get("missionsCompleted", len(missions)),
+                    "missionsFirstTry": signals.get("missionsFirstTry", 0),
+                },
+                "missions": missions,
+            }
+        else:
+            return {
+                "is_registered": False,
+                "status_label": "NEW CANDIDATE",
+                "member": {
+                    "id": "CAND-NEW",
+                    "name": candidate_query or "New Candidate",
+                    "jobRole": "AI Engineering Scholar",
+                    "yearsExperience": 0,
+                    "education": "Self-Taught / Student",
+                    "status": "UNREGISTERED",
+                    "cohort": "TRINITY AI Cohort",
+                },
+                "signals": {
+                    "commitDays": 0,
+                    "missionsCompleted": 0,
+                    "missionsFirstTry": 0,
+                },
+                "missions": [],
+                "note": "First-time candidate profile. Complete your first technical assessment to build your engineering credentials.",
+            }
 
 
 knowledge_engine = KnowledgeEngine()
+
