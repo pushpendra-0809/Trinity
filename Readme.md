@@ -1,4 +1,5 @@
 Trinity
+Link :- https://teen-log-trinity.vercel.app/
 
 **Built to Question. Designed to Know.**
 
@@ -158,8 +159,6 @@ The terminal will show the local URL where the application is running.
 🌐 Deployment
 
 Trinity is deployed using Vercel.
-
-Link : https://teen-log-trinity.vercel.app/interview/a35edd2f-7735-4b2c-810d-f4e158e91484/result
 
 The same project can also be run locally using the development server described above.
 
