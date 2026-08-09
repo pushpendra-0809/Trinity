@@ -258,20 +258,21 @@ async def get_interview_result(interview_id: str):
             item_status = item.get("status", "correct" if eval_data.get("score", 0) > 0 else "incorrect")
             is_skipped = item_status == "skipped"
             is_not_attempted = item_status in {"not_attempted", "not_reached"}
+            norm_status = "not_attempted" if is_not_attempted else item_status
 
             question_feedback.append({
                 "questionId": f"q{i + 1}",
                 "question_number": i + 1,
                 "attempted": not (is_skipped or is_not_attempted),
-                "status": item_status,
+                "status": norm_status,
                 "question": item.get("question"),
                 "score": eval_data.get("score", 0),
                 "max_score": 10,
                 "time_spent_seconds": item.get("time_spent_seconds", eval_data.get("time_spent_seconds", 0)),
-                "correctness": item_status,
-                "performance_level": eval_data.get("performance_level", item_status),
-                "feedback": eval_data.get("feedback_snippet") or eval_data.get("reasoning_summary") or ("Question skipped" if is_skipped else "Question not attempted"),
-                "analysis": eval_data.get("classification", item_status),
+                "correctness": norm_status,
+                "performance_level": eval_data.get("performance_level", norm_status),
+                "feedback": eval_data.get("feedback_snippet") or eval_data.get("reasoning_summary") or ("Question skipped by candidate." if is_skipped else "Question not attempted."),
+                "analysis": eval_data.get("classification", norm_status),
                 "user_answer": item.get("answer"),
                 "ideal_answer": eval_data.get("ideal_answer"),
                 "strengths": eval_data.get("identified_strengths", []),
@@ -282,15 +283,15 @@ async def get_interview_result(interview_id: str):
                 "questionId": f"q{i + 1}",
                 "question_number": i + 1,
                 "attempted": False,
-                "status": "not_reached",
+                "status": "not_attempted",
                 "question": f"Question {i + 1}",
                 "score": 0,
                 "max_score": 10,
                 "time_spent_seconds": 0,
-                "correctness": "not_reached",
-                "performance_level": "not_reached",
-                "feedback": "Question was not reached.",
-                "analysis": "not_reached",
+                "correctness": "not_attempted",
+                "performance_level": "not_attempted",
+                "feedback": "Question not attempted.",
+                "analysis": "not_attempted",
             })
 
     return {

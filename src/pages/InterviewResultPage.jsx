@@ -127,10 +127,11 @@ function ScoreHero({ result, isTerminated, totalQuestions = 16 }) {
   const tier = getScoreTier(numScore);
   const performanceBand = result.performance_band || tier.label.toUpperCase();
 
-  const correctCount = result.correct ?? 0;
-  const incorrectCount = result.incorrect ?? 0;
+  const answeredCount = result.answered ?? result.attempted_questions ?? 0;
   const skippedCount = result.skipped ?? 0;
-  const notAttemptedCount = result.not_attempted ?? Math.max(0, totalQuestions - (correctCount + incorrectCount + skippedCount));
+  const notAttemptedCount = result.not_attempted ?? Math.max(0, totalQuestions - answeredCount - skippedCount);
+  const correctCount = result.correct ?? 0;
+  const incorrectCount = result.incorrect ?? Math.max(0, answeredCount - correctCount);
 
   const radius = 64;
   const strokeWidth = 10;
@@ -186,7 +187,7 @@ function ScoreHero({ result, isTerminated, totalQuestions = 16 }) {
           <span className="counter-val">↷ {skippedCount}</span>
           <span className="counter-lbl">Skipped</span>
         </div>
-        <div className="counter-item unattempted" title="Not reached due to termination">
+        <div className="counter-item unattempted" title="Questions neither answered nor skipped (0 marks)">
           <span className="counter-val">○ {notAttemptedCount}</span>
           <span className="counter-lbl">Not Attempted</span>
         </div>
@@ -247,6 +248,20 @@ export default function InterviewResultPage() {
   }, [id]);
 
   useEffect(() => {
+    // Result page MUST always run in normal browser mode
+    try {
+      const isFS = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement
+      );
+      if (isFS && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
+
     let isMounted = true;
     if (!id) return;
 

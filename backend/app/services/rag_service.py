@@ -491,11 +491,27 @@ class KnowledgeEngine:
         for idx, s in enumerate(all_sessions, start=1):
             report = s.feedback or {}
             history_turns = s.history
-            history_len = len(history_turns)
-            skipped_cnt = sum(1 for h in history_turns if h.get("status") == "skipped")
-            answered_cnt = sum(1 for h in history_turns if h.get("status") != "skipped")
-            correct_cnt = report.get("correct", sum(1 for h in history_turns if h.get("status") != "skipped" and h.get("evaluation", {}).get("score", 0) > 0))
-            incorrect_cnt = report.get("incorrect", sum(1 for h in history_turns if h.get("status") != "skipped" and h.get("evaluation", {}).get("score", 0) == 0))
+            skipped_cnt = report.get("skipped", sum(1 for h in history_turns if h.get("status") == "skipped"))
+            answered_cnt = report.get(
+                "answered",
+                sum(
+                    1
+                    for h in history_turns
+                    if h.get("status") not in {"skipped", "not_attempted", "not_reached"}
+                    and (h.get("answer") is not None or h.get("attempted", True))
+                ),
+            )
+            correct_cnt = report.get(
+                "correct",
+                sum(
+                    1
+                    for h in history_turns
+                    if h.get("status") not in {"skipped", "not_attempted", "not_reached"}
+                    and h.get("evaluation", {}).get("score", 0) > 0
+                ),
+            )
+            incorrect_cnt = report.get("incorrect", max(0, answered_cnt - correct_cnt))
+            not_attempted_cnt = report.get("not_attempted", max(0, 16 - answered_cnt - skipped_cnt))
 
             dt_str = datetime.datetime.fromtimestamp(s.created_at).strftime("%d %b %Y")
 
@@ -512,7 +528,7 @@ class KnowledgeEngine:
                 "correct": correct_cnt,
                 "incorrect": incorrect_cnt,
                 "skipped": skipped_cnt,
-                "not_attempted": max(0, 16 - history_len),
+                "not_attempted": not_attempted_cnt,
                 "status": s.status,
             })
 

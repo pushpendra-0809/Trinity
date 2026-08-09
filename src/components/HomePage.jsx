@@ -1025,11 +1025,11 @@ function HomePage() {
         </div>
 
         {/* MAIN HEADING */}
-
+          
         <h1 className="hero-title">
-          Hire with{" "}
+          Prepare smarter.{" "}
           <span className="gradient-text">
-            better questions.
+            Interview better.
           </span>
         </h1>
 

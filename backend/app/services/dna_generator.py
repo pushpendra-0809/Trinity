@@ -11,33 +11,27 @@ class DNAGenerator:
         max_marks = 160
 
         earned_marks = sum(h.get("evaluation", {}).get("score", 0) for h in history)
-        percentage = round((earned_marks / max_marks) * 100, 1)
-        overall_score = round(percentage)
+        percentage = round((earned_marks / max_marks) * 100, 2)
+        overall_score = round((earned_marks / max_marks) * 100, 1)
 
+        skipped = sum(1 for h in history if h.get("status") == "skipped")
+        answered = sum(
+            1
+            for h in history
+            if h.get("status") not in {"skipped", "not_attempted", "not_reached"}
+            and (h.get("answer") is not None or h.get("attempted", True))
+        )
         correct = sum(
             1
             for h in history
-            if h.get("status") in {"correct", "partial"} or (
-                h.get("status") not in {"skipped", "not_attempted"}
-                and h.get("evaluation", {}).get("score", 0) > 0
-                and not h.get("evaluation", {}).get("bluff_detected", False)
-            )
+            if h.get("status") not in {"skipped", "not_attempted", "not_reached"}
+            and h.get("evaluation", {}).get("score", 0) > 0
+            and not h.get("evaluation", {}).get("bluff_detected", False)
         )
-        incorrect = sum(
-            1
-            for h in history
-            if h.get("status") == "incorrect" or (
-                h.get("status") not in {"skipped", "not_attempted"}
-                and (
-                    h.get("evaluation", {}).get("score", 0) == 0
-                    or h.get("evaluation", {}).get("bluff_detected", False)
-                )
-            )
-        )
-        skipped = sum(1 for h in history if h.get("status") == "skipped")
-        not_attempted_explicit = sum(1 for h in history if h.get("status") == "not_attempted")
-        not_attempted = not_attempted_explicit + max(0, total_questions - len(history))
-        answered = correct + incorrect
+        incorrect = max(0, answered - correct)
+
+        # Definitive TRINITY Invariant: ANSWERED + SKIPPED + NOT_ATTEMPTED = 16
+        not_attempted = max(0, total_questions - answered - skipped)
 
         if overall_score >= 90:
             performance_band = "EXCELLENT"

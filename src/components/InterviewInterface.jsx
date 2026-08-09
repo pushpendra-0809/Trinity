@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInterview } from "../hooks/useInterview";
 import { EmptyState, ErrorState, LoadingState } from "./common/StateComponents";
@@ -35,32 +35,56 @@ export default function InterviewInterface({ interviewId }) {
   const [isSkipModalOpen, setIsSkipModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
-  const [lockdownViolationReason] = useState(null);
+  const [lockdownViolationReason, setLockdownViolationReason] = useState(null);
+  const terminalRef = useRef(false);
+
+  const exitFullscreenSafely = () => {
+    try {
+      const isFS = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement
+      );
+      if (isFS) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   // Auto navigate on normal complete (when not terminated due to violation)
   useEffect(() => {
     if (isComplete && !lockdownViolationReason) {
+      exitFullscreenSafely();
       navigate(`/interview/${interviewId}/result`, { replace: true });
     }
   }, [isComplete, lockdownViolationReason, interviewId, navigate]);
 
-  /* LOCKDOWN BROWSER TEMPORARILY DISABLED FOR TESTING */
-  /*
+  // Frontend Lockdown Monitoring (Sections 1-12)
   useEffect(() => {
-    if (loading || !interview || isComplete || lockdownViolationReason) {
+    if (loading || !interview || isComplete || lockdownViolationReason || terminalRef.current) {
       return;
     }
 
     const triggerViolation = (reason) => {
+      if (terminalRef.current) return;
+      terminalRef.current = true;
       setLockdownViolationReason(reason);
-      handleCompleteInterview();
+      handleExitInterview("TAB_SWITCH");
 
       const attemptedCount = Object.keys(submittedAnswers).length;
       const termReason = reason === "fullscreen" ? "FULLSCREEN_EXIT" : "TAB_SWITCH";
       const termMsg =
         reason === "fullscreen"
-          ? "Your test was automatically closed because you exited fullscreen mode during the assessment."
-          : "Your test was automatically closed because you switched away from the test page during the assessment.";
+          ? "You exited fullscreen mode while the test was active. The test has been closed."
+          : "Your test has been closed because you switched away from the test page while lockdown mode was active.";
 
       const terminationPayload = {
         isTerminated: true,
@@ -76,22 +100,10 @@ export default function InterviewInterface({ interviewId }) {
           JSON.stringify(terminationPayload)
         );
       } catch {
-        // Ignore storage write errors
+        // ignore
       }
 
-      if (
-        document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.mozFullScreenElement
-      ) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      }
+      exitFullscreenSafely();
     };
 
     const handleVisibilityChange = () => {
@@ -118,26 +130,22 @@ export default function InterviewInterface({ interviewId }) {
     window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
-    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleWindowBlur);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
-      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
     };
   }, [
     loading,
     interview,
     isComplete,
     lockdownViolationReason,
-    handleCompleteInterview,
+    handleExitInterview,
     interviewId,
     submittedAnswers,
-    TOTAL_QUESTIONS,
   ]);
-  */
 
   const attemptedCount = Object.keys(submittedAnswers).length;
   const currentQuestionNumber = currentQuestionIndex + 1;
@@ -148,16 +156,20 @@ export default function InterviewInterface({ interviewId }) {
     currentQuestion && submittedAnswers[currentQuestion.id] !== undefined;
 
   const onComplete = async () => {
+    if (terminalRef.current) return;
+    terminalRef.current = true;
     await handleCompleteInterview();
-    navigate(`/interview/${interviewId}/result`);
+    exitFullscreenSafely();
+    navigate(`/interview/${interviewId}/result`, { replace: true });
   };
 
   const handleTerminationResultClick = () => {
+    exitFullscreenSafely();
     const termReason = lockdownViolationReason === "fullscreen" ? "FULLSCREEN_EXIT" : "TAB_SWITCH";
     const termMsg =
       lockdownViolationReason === "fullscreen"
-        ? "Your test was automatically closed because you exited fullscreen mode during the assessment."
-        : "Your test was automatically closed because you switched away from the test page during the assessment.";
+        ? "You exited fullscreen mode while the test was active. The test has been closed."
+        : "Your test has been closed because you switched away from the test page while lockdown mode was active.";
 
     const terminationPayload = {
       isTerminated: true,
@@ -510,13 +522,17 @@ export default function InterviewInterface({ interviewId }) {
                   className="primary-action-btn exit-confirm-btn"
                   disabled={exiting}
                   onClick={async () => {
+                    if (terminalRef.current) return;
+                    terminalRef.current = true;
                     setExiting(true);
                     try {
                       await handleExitInterview("VOLUNTARY_EXIT");
                       setIsExitModalOpen(false);
+                      exitFullscreenSafely();
                       navigate(`/interview/${interviewId}/result`, { replace: true });
                     } catch {
                       setExiting(false);
+                      terminalRef.current = false;
                     }
                   }}
                 >

@@ -102,8 +102,10 @@ export default function QuestionDetailsPage() {
     const item = Array.isArray(result?.questionFeedback)
       ? result.questionFeedback[i]
       : null;
+
     const isSkipped = item?.status === "skipped" || item?.correctness === "skipped";
-    const isAttempted = Boolean(item && item.attempted !== false && item.question && !isSkipped);
+    const isNotAttempted = item?.status === "not_attempted" || item?.status === "not_reached" || !item || item?.attempted === false;
+    const isAttempted = !isSkipped && !isNotAttempted;
 
     let areaName = "General Technical";
     if (availableAreas.length > 0) {
@@ -112,19 +114,26 @@ export default function QuestionDetailsPage() {
     }
 
     const itemScore = item?.score ?? 0;
-    const correctness = isSkipped ? "skipped" : (item?.correctness ?? (isAttempted ? (itemScore > 0 ? "correct" : "incorrect") : "not_attempted"));
+    const correctness = isSkipped
+      ? "skipped"
+      : isAttempted
+      ? itemScore > 0
+        ? "correct"
+        : "incorrect"
+      : "not_attempted";
 
     return {
       qNum,
       isAttempted,
       isSkipped,
+      isNotAttempted,
       question: item?.question ?? `Question ${qNum}`,
-      feedback: isSkipped ? "Question skipped by candidate." : (item?.feedback ?? null),
-      analysis: isSkipped ? "skipped" : (item?.analysis ?? null),
+      feedback: isSkipped ? "Question skipped by candidate." : isNotAttempted ? "Question not attempted." : (item?.feedback ?? null),
+      analysis: isSkipped ? "skipped" : isNotAttempted ? "not_attempted" : (item?.analysis ?? null),
       score: itemScore,
       timeSpentSeconds: item?.time_spent_seconds ?? 0,
       correctness,
-      performanceLevel: isSkipped ? "skipped" : (item?.performance_level ?? (isAttempted ? "strong" : "not_attempted")),
+      performanceLevel: isSkipped ? "skipped" : isNotAttempted ? "not_attempted" : (item?.performance_level ?? "strong"),
       area: areaName,
     };
   });
@@ -195,9 +204,9 @@ export default function QuestionDetailsPage() {
               </div>
 
               <div className="summary-metric-item">
-                <span className="summary-metric-label">Breakdown</span>
+                <span className="summary-metric-label">Breakdown (Out of 16)</span>
                 <span className="summary-metric-value">
-                  ✓{result.correct ?? attemptedCount} | ✗{result.incorrect ?? 0} | ↷{result.skipped ?? 0} | ○{result.not_attempted ?? (TOTAL_QUESTIONS - attemptedCount)}
+                  ✓{result.answered ?? attemptedCount} Answered | ↷{result.skipped ?? 0} Skipped | ○{result.not_attempted ?? (TOTAL_QUESTIONS - attemptedCount)} Not Attempted
                 </span>
               </div>
               <div className="summary-metric-item">

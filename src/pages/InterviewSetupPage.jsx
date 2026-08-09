@@ -88,10 +88,8 @@ export default function InterviewSetupPage() {
   };
 
   const handleInitialFormSubmit = (config) => {
-    /* LOCKDOWN BROWSER TEMPORARILY DISABLED FOR TESTING */
-    // setPendingConfig(config);
-    // setShowConsentModal(true);
-    handleStartInterview(config);
+    setPendingConfig(config);
+    setShowConsentModal(true);
   };
 
   const handleCancelConsent = () => {

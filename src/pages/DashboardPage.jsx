@@ -286,10 +286,9 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="test-card-counters">
-                    <span className="counter-tag correct">✓ {item.correct} Correct</span>
+                    <span className="counter-tag correct">✓ {item.answered} Answered ({item.correct} Correct)</span>
                     <span className="counter-tag skipped">↷ {item.skipped} Skipped</span>
-                    <span className="counter-tag incorrect">✗ {item.incorrect} Incorrect</span>
-                    <span className="counter-tag unattempted">○ {item.not_attempted} Not Reached</span>
+                    <span className="counter-tag unattempted">○ {item.not_attempted} Not Attempted</span>
                     {item.avg_time_per_question > 0 && (
                       <span className="counter-tag time-tag" style={{ color: "#38bdf8", background: "rgba(56, 189, 248, 0.08)", border: "1px solid rgba(56, 189, 248, 0.2)" }} title="Average Response Time per question">
                         ⏱ {item.avg_time_per_question}s/q
