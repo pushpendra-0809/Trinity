@@ -157,7 +157,7 @@ The terminal will show the local URL where the application is running.
 
 🌐 Deployment
 
-Trinity is deployed using Render.
+Trinity is deployed using Vercel.
 
 The same project can also be run locally using the development server described above.
 
